@@ -185,15 +185,34 @@
             </Grid.RowDefinitions>
 
             <GroupBox Grid.Row="0" Header="Код для выполнения" Margin="5" Style="{StaticResource GroupBoxStyle}">
-                <ScrollViewer>
-                    <TextBox Name="CodeInputTextBox" 
-                             AcceptsReturn="True" 
-                             AcceptsTab="True" 
-                             TextWrapping="Wrap" 
-                             VerticalScrollBarVisibility="Auto" 
-                             HorizontalScrollBarVisibility="Auto"
-                             Style="{StaticResource TextBoxStyle}"/>
-                </ScrollViewer>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Background="#3C3C3C" BorderBrush="#9B59B6" BorderThickness="0,0,1,0">
+                        <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
+                            <TextBlock x:Name="LineNumbersTextBlock" 
+                                       Text="1" 
+                                       Padding="5,0,5,0" 
+                                       VerticalAlignment="Top"
+                                       Foreground="Gray"
+                                       FontFamily="Consolas"
+                                       FontSize="{Binding ElementName=FontSizeSlider, Path=Value}"/>
+                        </ScrollViewer>
+                    </Border>
+
+                    <ScrollViewer Grid.Column="1">
+                        <TextBox Name="CodeInputTextBox" 
+                                 AcceptsReturn="True" 
+                                 AcceptsTab="True" 
+                                 TextWrapping="NoWrap" 
+                                 VerticalScrollBarVisibility="Visible" 
+                                 HorizontalScrollBarVisibility="Auto"
+                                 Style="{StaticResource TextBoxStyle}"/>
+                    </ScrollViewer>
+                </Grid>
             </GroupBox>
 
             <GridSplitter Grid.Row="1" 

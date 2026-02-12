@@ -19,6 +19,7 @@ namespace YourNamespace
         private void CodeInputTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             hasUnsavedChanges = true;
+            UpdateLineNumbers();
         }
 
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -61,6 +62,7 @@ namespace YourNamespace
 
             CodeInputTextBox.Clear();
             ResultOutputTextBox.Clear();
+            UpdateLineNumbers();
             hasUnsavedChanges = false;
         }
 
@@ -73,6 +75,7 @@ namespace YourNamespace
             if (openFileDialog.ShowDialog() == true)
             {
                 CodeInputTextBox.Text = System.IO.File.ReadAllText(openFileDialog.FileName);
+                UpdateLineNumbers();
                 hasUnsavedChanges = false;
             }
         }
@@ -216,6 +219,17 @@ namespace YourNamespace
             }
         }
 
+        private void UpdateLineNumbers()
+        {
+            int lineCount = CodeInputTextBox.LineCount;
+            string lineNumbers = "";
+            for (int i = 1; i <= lineCount; i++)
+            {
+                lineNumbers += i.ToString() + "\n";
+            }
+            LineNumbersTextBlock.Text = lineNumbers.TrimEnd('\n');
+        }
+
         private void UserGuide_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Реализованные функции:\n" +
@@ -223,6 +237,7 @@ namespace YourNamespace
                            "- Операции с текстом: отмена/возврат, вырезание, копирование, вставка, удаление\n" +
                            "- Выделение всего текста\n" +
                            "- Изменение размера шрифта\n" +
+                           "- Нумерация строк в окне редактирования\n" +
                            "- Адаптивный интерфейс с возможностью изменения размеров областей",
                            "Руководство пользователя");
         }
