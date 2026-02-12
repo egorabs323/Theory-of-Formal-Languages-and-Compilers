@@ -18,7 +18,6 @@ namespace YourNamespace
             InitializeComponent();
             this.Closing += MainWindow_Closing;
 
-            // Добавляем первую вкладку в список
             var firstTabContent = (CodeTabs.Items[0] as TabItem)?.Content as Grid;
             if (firstTabContent != null)
             {
@@ -49,7 +48,7 @@ namespace YourNamespace
             int lineCount = textBox.LineCount;
             if (lineCount <= 0)
             {
-                lineNumbers.Text = "1"; // или ""
+                lineNumbers.Text = "1"; // если не сломается 
                 return;
             }
 
@@ -169,10 +168,7 @@ namespace YourNamespace
             CodeTabs.Items.Add(tab);
             CodeTabs.SelectedItem = tab;
 
-            // Добавляем пару в список для управления
             editors.Add(new Tuple<TextBlock, TextBox>(lineNumbersBlock, textBox));
-
-            // Обновляем номера строк
             UpdateLineNumbers(textBox, lineNumbersBlock);
         }
 
@@ -194,6 +190,7 @@ namespace YourNamespace
                 {
                     textBox.Text = System.IO.File.ReadAllText(openFileDialog.FileName);
                     selectedTab.Header = System.IO.Path.GetFileName(openFileDialog.FileName);
+                    selectedTab.Tag = openFileDialog.FileName; 
                 }
             }
         }
@@ -203,22 +200,7 @@ namespace YourNamespace
             var selectedTab = CodeTabs.SelectedItem as TabItem;
             if (selectedTab != null)
             {
-                SaveTab(selectedTab);
-            }
-        }
-
-        private void SaveTab(TabItem tab)
-        {
-            var textBox = FindVisualChild<TextBox>(tab.Content as DependencyObject);
-            if (textBox != null)
-            {
-                SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*";
-                if (saveFileDialog.ShowDialog() == true)
-                {
-                    System.IO.File.WriteAllText(saveFileDialog.FileName, textBox.Text);
-                    tab.Header = System.IO.Path.GetFileName(saveFileDialog.FileName);
-                }
+                SaveTab(selectedTab, false);
             }
         }
 
@@ -227,7 +209,33 @@ namespace YourNamespace
             var selectedTab = CodeTabs.SelectedItem as TabItem;
             if (selectedTab != null)
             {
-                SaveTab(selectedTab);
+                SaveTab(selectedTab, true); 
+            }
+        }
+
+        private void SaveTab(TabItem tab, bool forceSaveAs = false)
+        {
+            var textBox = FindVisualChild<TextBox>(tab.Content as DependencyObject);
+            if (textBox != null)
+            {
+                string filePath = tab.Tag as string; 
+
+                if (forceSaveAs || string.IsNullOrEmpty(filePath))
+                {
+                    SaveFileDialog saveFileDialog = new SaveFileDialog();
+                    saveFileDialog.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*";
+                    if (saveFileDialog.ShowDialog() == true)
+                    {
+                        System.IO.File.WriteAllText(saveFileDialog.FileName, textBox.Text);
+                        tab.Header = System.IO.Path.GetFileName(saveFileDialog.FileName);
+                        tab.Tag = saveFileDialog.FileName; 
+                    }
+                }
+                else
+                {
+                    System.IO.File.WriteAllText(filePath, textBox.Text);
+                    tab.Header = System.IO.Path.GetFileName(filePath);
+                }
             }
         }
 
@@ -370,7 +378,9 @@ namespace YourNamespace
 
         private void About_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Олейник Е.В. АП-326");
+            MessageBox.Show("Дисциплина -> Теория формальных языков и компиляторов \n" +
+                            "Выполнил -> Студент гр.АП-326 Олейник Е.В.\n" +
+                            "Проверил -> Ассистент АСУ Антонянц Е.Н.");
         }
     }
 }
