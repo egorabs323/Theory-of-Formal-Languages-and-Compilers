@@ -7,6 +7,7 @@ namespace YourNamespace
     public partial class MainWindow : Window
     {
         private bool hasUnsavedChanges = false;
+        private double currentFontSize = 12;
 
         public MainWindow()
         {
@@ -146,13 +147,82 @@ namespace YourNamespace
             CodeInputTextBox.SelectAll();
         }
 
+        private Slider GetFontSizeSlider()
+        {
+            var toolBar = FindName("FontSizeSlider") as Slider;
+            if (toolBar != null) return toolBar;
+            foreach (var child in LogicalTreeHelper.GetChildren(this))
+            {
+                if (child is ToolBarTray tray)
+                {
+                    foreach (var tb in tray.ToolBars)
+                    {
+                        var slider = tb.Template.FindName("FontSizeSlider", tb) as Slider;
+                        if (slider != null) return slider;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private void IncreaseFontSize_Click(object sender, RoutedEventArgs e)
+        {
+            var slider = GetFontSizeSlider();
+            if (slider != null && currentFontSize < 24)
+            {
+                currentFontSize += 1;
+                slider.Value = currentFontSize;
+            }
+            else if (currentFontSize < 24)
+            {
+                currentFontSize += 1;
+                CodeInputTextBox.FontSize = currentFontSize;
+                ResultOutputTextBox.FontSize = currentFontSize;
+            }
+        }
+
+        private void DecreaseFontSize_Click(object sender, RoutedEventArgs e)
+        {
+            var slider = GetFontSizeSlider();
+            if (slider != null && currentFontSize > 8)
+            {
+                currentFontSize -= 1;
+                slider.Value = currentFontSize;
+            }
+            else if (currentFontSize > 8)
+            {
+                currentFontSize -= 1;
+                CodeInputTextBox.FontSize = currentFontSize;
+                ResultOutputTextBox.FontSize = currentFontSize;
+            }
+        }
+
+        private void FontSize_Click(object sender, RoutedEventArgs e)
+        {
+            MenuItem menuItem = sender as MenuItem;
+            if (menuItem?.Tag != null)
+            {
+                double fontSize = double.Parse(menuItem.Tag.ToString());
+                currentFontSize = fontSize;
+
+                var slider = GetFontSizeSlider();
+                if (slider != null)
+                {
+                    slider.Value = currentFontSize;
+                }
+
+                CodeInputTextBox.FontSize = currentFontSize;
+                ResultOutputTextBox.FontSize = currentFontSize;
+            }
+        }
+
         private void UserGuide_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Реализованные функции:\n" +
                            "- Создание, открытие, сохранение файлов\n" +
                            "- Операции с текстом: отмена/возврат, вырезание, копирование, вставка, удаление\n" +
                            "- Выделение всего текста\n" +
-                           "- Выполнение кода и отображение результата\n" +
+                           "- Изменение размера шрифта\n" +
                            "- Адаптивный интерфейс с возможностью изменения размеров областей",
                            "Руководство пользователя");
         }
