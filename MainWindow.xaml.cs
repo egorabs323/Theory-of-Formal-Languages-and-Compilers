@@ -253,8 +253,10 @@ namespace YourNamespace
             if (selectedTab != null)
             {
                 var textBox = FindVisualChild<TextBox>(selectedTab.Content as DependencyObject);
-                if (textBox != null && textBox.CaretIndex > 0)
+                if (textBox != null && textBox.CanUndo) // Проверяем, возможно ли отменить
+                {
                     textBox.Undo();
+                }
             }
         }
 
@@ -264,8 +266,10 @@ namespace YourNamespace
             if (selectedTab != null)
             {
                 var textBox = FindVisualChild<TextBox>(selectedTab.Content as DependencyObject);
-                if (textBox != null && textBox.CaretIndex > 0)
+                if (textBox != null && textBox.CanRedo) // Проверяем, возможно ли повторить
+                {
                     textBox.Redo();
+                }
             }
         }
 
