@@ -91,6 +91,11 @@
                     <MenuItem Header="24" Tag="24" Click="FontSize_Click" Background="#6C3483" Foreground="White"/>
                 </MenuItem>
             </MenuItem>
+
+            <MenuItem Header="Язык интерфейса" Background="#6C3483" Foreground="White">
+                <MenuItem Header="Русский" Tag="ru-RU" Click="Language_Click" Background="#6C3483" Foreground="White"/>
+                <MenuItem Header="English" Tag="en-US" Click="Language_Click" Background="#6C3483" Foreground="White"/>
+            </MenuItem>
         </Menu>
 
         <ToolBarTray DockPanel.Dock="Top" Background="#3C3C3C">
