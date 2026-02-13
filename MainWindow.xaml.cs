@@ -395,7 +395,44 @@ namespace YourNamespace
                 }
             }
         }
+        private void Window_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                if (files.Length > 0)
+                {
+                    string filePath = files[0];
+                    if (System.IO.Path.GetExtension(filePath).ToLower() == ".txt")
+                    {
+                        OpenFile(filePath);
+                    }
+                }
+            }
+        }
 
+        private void OpenFile(string filePath)
+        {
+            var selectedTab = CodeTabs.SelectedItem as TabItem;
+            if (selectedTab == null ||
+                selectedTab.Header?.ToString().Contains("Новый документ") == true ||
+                selectedTab.Header?.ToString().Contains("Create") == true)
+            {
+                AddNewTab();
+                selectedTab = CodeTabs.SelectedItem as TabItem;
+            }
+
+            if (selectedTab != null)
+            {
+                var textBox = FindVisualChild<TextBox>(selectedTab.Content as DependencyObject);
+                if (textBox != null)
+                {
+                    textBox.Text = System.IO.File.ReadAllText(filePath);
+                    selectedTab.Header = System.IO.Path.GetFileName(filePath);
+                    selectedTab.Tag = filePath;
+                }
+            }
+        }
         private void Save_Click(object sender, RoutedEventArgs e)
         {
             if (CodeTabs.SelectedItem is TabItem tab)
