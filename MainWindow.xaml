@@ -92,7 +92,7 @@
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="Язык интерфейса" Background="#6C3483" Foreground="White">
+            <MenuItem Header="Язык интерфейса" Background="#4A235A" Foreground="White">
                 <MenuItem Header="Русский" Tag="ru-RU" Click="Language_Click" Background="#6C3483" Foreground="White"/>
                 <MenuItem Header="English" Tag="en-US" Click="Language_Click" Background="#6C3483" Foreground="White"/>
             </MenuItem>
