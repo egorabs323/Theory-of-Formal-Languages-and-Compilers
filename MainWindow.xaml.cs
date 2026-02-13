@@ -246,14 +246,52 @@ namespace YourNamespace
                 Application.Current.Shutdown();
             }
         }
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedTab = CodeTabs.SelectedItem as TabItem;
+            if (selectedTab != null)
+            {
+                var textBox = FindVisualChild<TextBox>(selectedTab.Content as DependencyObject);
+                if (textBox != null && !string.IsNullOrEmpty(textBox.Text))
+                {
+                    MessageBoxResult result = MessageBox.Show(
+                        $"У вас есть несохраненные изменения во вкладке '{selectedTab.Header}'. Сохранить перед закрытием?",
+                        "Подтверждение закрытия",
+                        MessageBoxButton.YesNoCancel,
+                        MessageBoxImage.Question);
 
+                    switch (result)
+                    {
+                        case MessageBoxResult.Yes:
+                            SaveTab(selectedTab, false);
+                            CodeTabs.Items.Remove(selectedTab);
+                            break;
+                        case MessageBoxResult.No:
+                            CodeTabs.Items.Remove(selectedTab);
+                            break;
+                        case MessageBoxResult.Cancel:
+                            return; 
+                        default:
+                            return;
+                    }
+                }
+                else
+                {
+                    CodeTabs.Items.Remove(selectedTab);
+                }
+                if (CodeTabs.Items.Count == 0)
+                {
+                    AddNewTab();
+                }
+            }
+        }
         private void Undo_Click(object sender, RoutedEventArgs e)
         {
             var selectedTab = CodeTabs.SelectedItem as TabItem;
             if (selectedTab != null)
             {
                 var textBox = FindVisualChild<TextBox>(selectedTab.Content as DependencyObject);
-                if (textBox != null && textBox.CanUndo) // Проверяем, возможно ли отменить
+                if (textBox != null && textBox.CanUndo)
                 {
                     textBox.Undo();
                 }
@@ -266,7 +304,7 @@ namespace YourNamespace
             if (selectedTab != null)
             {
                 var textBox = FindVisualChild<TextBox>(selectedTab.Content as DependencyObject);
-                if (textBox != null && textBox.CanRedo) // Проверяем, возможно ли повторить
+                if (textBox != null && textBox.CanRedo) 
                 {
                     textBox.Redo();
                 }

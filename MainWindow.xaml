@@ -58,6 +58,7 @@
                 <MenuItem Header="_Открыть" Click="Open_Click" InputGestureText="Ctrl+O" Background="#6C3483" Foreground="White"/>
                 <MenuItem Header="_Сохранить" Click="Save_Click" InputGestureText="Ctrl+S" Background="#6C3483" Foreground="White"/>
                 <MenuItem Header="Со_хранить как..." Click="SaveAs_Click" Background="#6C3483" Foreground="White"/>
+                <MenuItem Header="_Закрыть" Click="Close_Click" InputGestureText="Ctrl+W" Background="#6C3483" Foreground="White"/>
                 <Separator Background="#9B59B6"/>
                 <MenuItem Header="_Выход" Click="Exit_Click" Background="#6C3483" Foreground="White"/>
             </MenuItem>
@@ -116,6 +117,11 @@
                 Click="SaveAs_Click" 
                 ToolTip="Сохранить как">
                     <TextBlock Text="📝" TextAlignment="Center"/>
+                </Button>
+                <Button Style="{StaticResource ToolbarButtonStyle}" 
+                     Click="Close_Click" 
+                     ToolTip="Закрыть текущий документ (Ctrl+W)">
+                    <TextBlock Text="❌" TextAlignment="Center"/>
                 </Button>
                 <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="5" Background="#9B59B6"/>
 
