@@ -316,7 +316,7 @@ namespace YourNamespace
         {
             var tab = new TabItem
             {
-                Header = $"{LocalizationManager.GetString("CreateMenu")} {CodeTabs.Items.Count + 1}"
+                Header = $"{LocalizationManager.GetString("Новый документ")} {CodeTabs.Items.Count + 1}"
             };
 
             var grid = new Grid();
@@ -377,8 +377,7 @@ namespace YourNamespace
             {
                 var selectedTab = CodeTabs.SelectedItem as TabItem;
                 if (selectedTab == null ||
-                    selectedTab.Header?.ToString().Contains("Новый документ") == true ||
-                    selectedTab.Header?.ToString().Contains("Create") == true)
+                      selectedTab.Header?.ToString().StartsWith(LocalizationManager.GetString("Новый документ")) == true)
                 {
                     AddNewTab();
                     selectedTab = CodeTabs.SelectedItem as TabItem;
