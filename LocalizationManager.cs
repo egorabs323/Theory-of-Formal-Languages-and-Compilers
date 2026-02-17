@@ -13,6 +13,8 @@ namespace YourNamespace
             ["ru-RU"] = new Dictionary<string, string>
             {
                 ["AppName"] = "Текстовый редактор",
+                ["CodeGroup"] = "Код для выполнения",
+                ["ResultGroup"] = "Результат выполнения",
                 ["FileMenu"] = "Файл",
                 ["EditMenu"] = "Правка",
                 ["HelpMenu"] = "Справка",
@@ -55,6 +57,8 @@ namespace YourNamespace
             ["en-US"] = new Dictionary<string, string>
             {
                 ["AppName"] = "Text Editor",
+                ["CodeGroup"] = "Code for execution",
+                ["ResultGroup"] = "Execution result",
                 ["FileMenu"] = "File",
                 ["EditMenu"] = "Edit",
                 ["HelpMenu"] = "Help",
@@ -62,12 +66,12 @@ namespace YourNamespace
                 ["CreateMenu"] = "Create",
                 ["OpenMenu"] = "Open",
                 ["SaveMenu"] = "Save",
-                ["SaveAsMenu"] = "Save As...",
+                ["SaveAsMenu"] = "Save As...", 
                 ["CloseMenu"] = "Close",
                 ["ExitMenu"] = "Exit",
                 ["UndoMenu"] = "Undo",
                 ["RedoMenu"] = "Redo",
-                ["CutMenu"] = "Cut",
+                ["CutMenu"] = "Cut",         
                 ["CopyMenu"] = "Copy",
                 ["PasteMenu"] = "Paste",
                 ["DeleteMenu"] = "Delete",

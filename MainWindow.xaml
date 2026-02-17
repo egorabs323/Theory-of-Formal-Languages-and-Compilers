@@ -193,7 +193,7 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <GroupBox Grid.Row="0" Header="Код для выполнения" Margin="5" Style="{StaticResource GroupBoxStyle}">
+            <GroupBox x:Name="CodeGroupBox" Grid.Row="0" Header="Код для выполнения" Margin="5" Style="{StaticResource GroupBoxStyle}">
                 <TabControl x:Name="CodeTabs" Background="#3C3C3C">
                     <TabItem Header="Новый документ 1">
                         <Grid>
@@ -228,7 +228,7 @@
                           ResizeBehavior="PreviousAndNext"
                           HorizontalAlignment="Stretch"/>
 
-            <GroupBox Grid.Row="2" Header="Результат выполнения" Margin="5" Style="{StaticResource GroupBoxStyle}">
+            <GroupBox x:Name="ResultGroupBox" Grid.Row="2" Header="Результат выполнения" Margin="5" Style="{StaticResource GroupBoxStyle}">
                 <ScrollViewer>
                     <TextBox x:Name="ResultOutputTextBox" 
                              IsReadOnly="True" 

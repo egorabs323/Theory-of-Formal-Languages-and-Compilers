@@ -21,7 +21,8 @@ namespace YourNamespace
             InitializeInterface();
             UpdateUIForCurrentLanguage();
         }
-
+        private GroupBox _codeGroupBox = null;
+        private GroupBox _resultGroupBox = null;
         private void UpdateUIForCurrentLanguage()
         {
             this.Title = LocalizationManager.GetString("AppName");
@@ -29,22 +30,28 @@ namespace YourNamespace
             UpdateMenuItems();
             UpdateToolbarButtons();
 
-            var codeGroupBox = FindGroupBoxByHeader("Код для выполнения");
-            if (codeGroupBox != null)
-                codeGroupBox.Header = LocalizationManager.GetString("CodeGroup");
-
-            var resultGroupBox = FindGroupBoxByHeader("Результат выполнения");
-            if (resultGroupBox != null)
-                resultGroupBox.Header = LocalizationManager.GetString("ResultGroup");
+            // Прямой доступ по имени (без поиска!)
+            CodeGroupBox.Header = LocalizationManager.GetString("CodeGroup");
+            ResultGroupBox.Header = LocalizationManager.GetString("ResultGroup");
         }
-
-        private GroupBox FindGroupBoxByHeader(string headerText)
+        private void FindInterfaceElements()
+        {
+            // Ищем GroupBox по возможным заголовкам (RU и EN)
+            _codeGroupBox = FindGroupBoxByHeader(new[] { "Код для выполнения", "Code for execution" });
+            _resultGroupBox = FindGroupBoxByHeader(new[] { "Результат выполнения", "Execution result" });
+        }
+        private GroupBox FindGroupBoxByHeader(string[] possibleHeaders)
         {
             foreach (var groupBox in FindVisualChildren<GroupBox>(this))
             {
                 string hdr = groupBox.Header?.ToString();
-                if (!string.IsNullOrEmpty(hdr) && hdr.StartsWith(headerText.Split(' ')[0]))
-                    return groupBox;
+                if (string.IsNullOrEmpty(hdr)) continue;
+
+                foreach (var target in possibleHeaders)
+                {
+                    if (hdr.StartsWith(target.Split(' ')[0]))
+                        return groupBox;
+                }
             }
             return null;
         }
