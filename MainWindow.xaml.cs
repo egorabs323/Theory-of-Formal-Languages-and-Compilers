@@ -13,16 +13,32 @@ namespace YourNamespace
     {
         private double currentFontSize = 12;
         private List<Tuple<TextBlock, TextBox>> editors = new List<Tuple<TextBlock, TextBox>>();
-        private bool isModified = false;
+        private Dictionary<TextBox, bool> tabModifiedState = new Dictionary<TextBox, bool>();
         public MainWindow()
         {
             InitializeComponent();
             this.Closing += MainWindow_Closing;
+            FindInterfaceElements();
             InitializeInterface();
             UpdateUIForCurrentLanguage();
+            CodeTabs.SelectionChanged += CodeTabs_SelectionChanged;
         }
         private GroupBox _codeGroupBox = null;
         private GroupBox _resultGroupBox = null;
+        private void CodeTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CodeTabs.SelectedItem is TabItem selectedTab)
+            {
+                var textBox = FindVisualChild<TextBox>(selectedTab.Content as DependencyObject);
+                if (textBox != null && tabModifiedState.ContainsKey(textBox))
+                {
+                    if (tabModifiedState[textBox])
+                        StatusSaveState.Text = LocalizationManager.GetString("StatusModified");
+                    else
+                        StatusSaveState.Text = LocalizationManager.GetString("StatusReady");
+                }
+            }
+        }
         private void UpdateUIForCurrentLanguage()
         {
             this.Title = LocalizationManager.GetString("AppName");
@@ -211,20 +227,17 @@ namespace YourNamespace
 
         private void InitializeInterface()
         {
-            if (CodeTabs != null && CodeTabs.Items.Count > 0)
+            if (CodeInputTextBox != null && LineNumbersTextBlock != null)
             {
-                var firstTabContent = (CodeTabs.Items[0] as TabItem)?.Content as Grid;
-                if (firstTabContent != null)
+                editors.Add(new Tuple<TextBlock, TextBox>(LineNumbersTextBlock, CodeInputTextBox));
+                CodeInputTextBox.TextChanged += (s, e) =>
                 {
-                    var textBox = FindVisualChild<TextBox>(firstTabContent);
-                    var lineNumbersBlock = FindVisualChild<TextBlock>(firstTabContent);
-                    if (textBox != null && lineNumbersBlock != null)
-                    {
-                        editors.Add(new Tuple<TextBlock, TextBox>(lineNumbersBlock, textBox));
-                        textBox.TextChanged += CodeInputTextBox_TextChanged;
-                        textBox.SelectionChanged += CodeInputTextBox_SelectionChanged;
-                    }
-                }
+                    UpdateLineNumbers(CodeInputTextBox, LineNumbersTextBlock);
+                    MarkAsModified(CodeInputTextBox);
+                };
+
+                CodeInputTextBox.SelectionChanged += CodeInputTextBox_SelectionChanged;
+                tabModifiedState[CodeInputTextBox] = false;
             }
             UpdateStatusBar();
         }
@@ -252,20 +265,36 @@ namespace YourNamespace
         }
         private void UpdateStatusBar()
         {
-            if (isModified)
-                StatusSaveState.Text = LocalizationManager.GetString("StatusModified");
-            else
-                StatusSaveState.Text = LocalizationManager.GetString("StatusReady");
+            if (CodeTabs.SelectedItem is TabItem selectedTab)
+            {
+                var textBox = FindVisualChild<TextBox>(selectedTab.Content as DependencyObject);
+                bool isModified = (textBox != null && tabModifiedState.ContainsKey(textBox) && tabModifiedState[textBox]);
+
+                if (StatusSaveState != null)
+                {
+                    StatusSaveState.Text = isModified
+                        ? LocalizationManager.GetString("StatusModified")
+                        : LocalizationManager.GetString("StatusReady");
+                }
+            }
         }
-        private void MarkAsModified()
+
+        private void MarkAsModified(TextBox textBox)
         {
-            isModified = true;
-            UpdateStatusBar();
+            if (textBox != null && tabModifiedState.ContainsKey(textBox))
+            {
+                tabModifiedState[textBox] = true;
+                UpdateStatusBar();
+            }
         }
-        private void MarkAsSaved()
+
+        private void MarkAsSaved(TextBox textBox)
         {
-            isModified = false;
-            UpdateStatusBar();
+            if (textBox != null && tabModifiedState.ContainsKey(textBox))
+            {
+                tabModifiedState[textBox] = false;
+                UpdateStatusBar();
+            }
         }
 
         private void UpdateLineNumbers(TextBox textBox, TextBlock lineNumbers)
@@ -386,7 +415,7 @@ namespace YourNamespace
             textBox.TextChanged += (s, e) =>
             {
                 UpdateLineNumbers(textBox, lineNumbersBlock);
-                MarkAsModified();
+                MarkAsModified(textBox);
             };
 
             Grid.SetColumn(lineNumbersBorder, 0);
@@ -401,7 +430,7 @@ namespace YourNamespace
 
             editors.Add(new Tuple<TextBlock, TextBox>(lineNumbersBlock, textBox));
             UpdateLineNumbers(textBox, lineNumbersBlock);
-            MarkAsSaved();
+            tabModifiedState[textBox] = false;
         }
 
         private void Open_Click(object sender, RoutedEventArgs e)
@@ -465,7 +494,7 @@ namespace YourNamespace
                     textBox.Text = System.IO.File.ReadAllText(filePath);
                     selectedTab.Header = System.IO.Path.GetFileName(filePath);
                     selectedTab.Tag = filePath;
-                    MarkAsSaved();
+                    MarkAsSaved(textBox);
                 }
             }
         }
@@ -497,29 +526,22 @@ namespace YourNamespace
                     System.IO.File.WriteAllText(saveFileDialog.FileName, textBox.Text);
                     tab.Header = System.IO.Path.GetFileName(saveFileDialog.FileName);
                     tab.Tag = saveFileDialog.FileName;
-                    MarkAsSaved();  
+
+                    if (tabModifiedState.ContainsKey(textBox))
+                        tabModifiedState[textBox] = false;
+                    UpdateStatusBar();
                 }
             }
             else
             {
                 System.IO.File.WriteAllText(filePath, textBox.Text);
                 tab.Header = System.IO.Path.GetFileName(filePath);
-                MarkAsSaved(); 
+                if (tabModifiedState.ContainsKey(textBox))
+                    tabModifiedState[textBox] = false;
+                UpdateStatusBar();
             }
+            UpdateStatusBar();
         }
-
-        private void CodeInputTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (sender is TextBox textBox)
-            {
-                var pair = editors.FirstOrDefault(x => x.Item2 == textBox);
-                if (pair?.Item1 != null)
-                    UpdateLineNumbers(textBox, pair.Item1);
-
-                MarkAsModified();
-            }
-        }
-
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
             if (ConfirmSaveBeforeExit())

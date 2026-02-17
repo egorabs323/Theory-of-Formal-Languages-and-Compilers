@@ -53,7 +53,7 @@ namespace YourNamespace
                 ["MultiDocs"] = "- Работа с несколькими документами через вкладки",
                 ["AdaptiveInterface"] = "- Адаптивный интерфейс с возможностью изменения размеров областей",
                 ["AboutTitle"] = "О программе",
-                ["StatusReady"] = "Готов",
+                ["StatusReady"] = "Готово",
                 ["StatusModified"] = "Изменено",
                 ["StatusSaved"] = "Сохранено",
                 ["StatusLine"] = "Стр",
