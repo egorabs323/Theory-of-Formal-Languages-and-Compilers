@@ -29,14 +29,11 @@ namespace YourNamespace
 
             UpdateMenuItems();
             UpdateToolbarButtons();
-
-            // Прямой доступ по имени (без поиска!)
             CodeGroupBox.Header = LocalizationManager.GetString("CodeGroup");
             ResultGroupBox.Header = LocalizationManager.GetString("ResultGroup");
         }
         private void FindInterfaceElements()
         {
-            // Ищем GroupBox по возможным заголовкам (RU и EN)
             _codeGroupBox = FindGroupBoxByHeader(new[] { "Код для выполнения", "Code for execution" });
             _resultGroupBox = FindGroupBoxByHeader(new[] { "Результат выполнения", "Execution result" });
         }
@@ -112,57 +109,58 @@ namespace YourNamespace
 
                 string hdr = subItem.Header?.ToString();
                 if (string.IsNullOrEmpty(hdr)) continue;
+                string cleanHdr = hdr.Replace("_", "");
 
                 switch (type)
                 {
                     case FileType.SubMenu:
-                        if (hdr.Contains("Создать") || hdr.Contains("Create"))
+                        if (cleanHdr.Contains("Создать") || cleanHdr.Contains("Create"))
                             subItem.Header = $"_{LocalizationManager.GetString("CreateMenu")}";
-                        else if (hdr.Contains("Открыть") || hdr.Contains("Open"))
+                        else if (cleanHdr.Contains("Открыть") || cleanHdr.Contains("Open"))
                             subItem.Header = $"_{LocalizationManager.GetString("OpenMenu")}";
-                        else if (hdr.Contains("Сохранить") && !hdr.Contains("как"))
+                        else if (cleanHdr.Contains("Сохранить") && !cleanHdr.Contains("как"))
                             subItem.Header = $"_{LocalizationManager.GetString("SaveMenu")}";
-                        else if (hdr.Contains("Сохранить как"))
+                        else if (cleanHdr.Contains("Сохранить") && cleanHdr.Contains("как"))
                             subItem.Header = LocalizationManager.GetString("SaveAsMenu");
-                        else if (hdr.Contains("Закрыть") || hdr.Contains("Close"))
+                        else if (cleanHdr.Contains("Закрыть") || cleanHdr.Contains("Close"))
                             subItem.Header = $"_{LocalizationManager.GetString("CloseMenu")}";
-                        else if (hdr.Contains("Выход") || hdr.Contains("Exit"))
+                        else if (cleanHdr.Contains("Выход") || cleanHdr.Contains("Exit"))
                             subItem.Header = $"_{LocalizationManager.GetString("ExitMenu")}";
                         break;
 
                     case FileType.EditMenu:
-                        if (hdr.Contains("Отменить") || hdr.Contains("Undo"))
+                        if (cleanHdr.Contains("Отменить") || cleanHdr.Contains("Undo"))
                             subItem.Header = $"_{LocalizationManager.GetString("UndoMenu")}";
-                        else if (hdr.Contains("Повторить") || hdr.Contains("Redo"))
+                        else if (cleanHdr.Contains("Повторить") || cleanHdr.Contains("Redo"))
                             subItem.Header = $"_{LocalizationManager.GetString("RedoMenu")}";
-                        else if (hdr.Contains("Вырезать") || hdr.Contains("Cut"))
+                        else if (cleanHdr.Contains("Вырезать") || cleanHdr.Contains("Cut")) 
                             subItem.Header = $"_{LocalizationManager.GetString("CutMenu")}";
-                        else if (hdr.Contains("Копировать") || hdr.Contains("Copy"))
+                        else if (cleanHdr.Contains("Копировать") || cleanHdr.Contains("Copy"))
                             subItem.Header = $"_{LocalizationManager.GetString("CopyMenu")}";
-                        else if (hdr.Contains("Вставить") || hdr.Contains("Paste"))
+                        else if (cleanHdr.Contains("Вставить") || cleanHdr.Contains("Paste"))
                             subItem.Header = $"_{LocalizationManager.GetString("PasteMenu")}";
-                        else if (hdr.Contains("Удалить") || hdr.Contains("Delete"))
+                        else if (cleanHdr.Contains("Удалить") || cleanHdr.Contains("Delete"))
                             subItem.Header = $"_{LocalizationManager.GetString("DeleteMenu")}";
-                        else if (hdr.Contains("Выделить") || hdr.Contains("Select All"))
+                        else if (cleanHdr.Contains("Выделить") || cleanHdr.Contains("Select All"))
                             subItem.Header = $"_{LocalizationManager.GetString("SelectAllMenu")}";
                         break;
 
                     case FileType.HelpMenu:
-                        if (hdr.Contains("Руководство") || hdr.Contains("User Guide"))
+                        if (cleanHdr.Contains("Руководство") || cleanHdr.Contains("User Guide"))
                             subItem.Header = $"_{LocalizationManager.GetString("UserGuideMenu")}";
-                        else if (hdr.Contains("О программе") || hdr.Contains("About"))
+                        else if (cleanHdr.Contains("О программе") || cleanHdr.Contains("About"))
                             subItem.Header = $"_{LocalizationManager.GetString("AboutMenu")}";
                         break;
 
                     case FileType.ViewMenu:
-                        if (hdr.Contains("Размер шрифта") || hdr.Contains("Font Size"))
+                        if (cleanHdr.Contains("Размер шрифта") || cleanHdr.Contains("Font Size"))
                             subItem.Header = LocalizationManager.GetString("FontSizeMenu");
                         break;
 
                     case FileType.LanguageMenu:
-                        if (hdr.Contains("Русский"))
+                        if (cleanHdr.Contains("Русский"))
                             subItem.Header = "Русский";
-                        else if (hdr.Contains("English"))
+                        else if (cleanHdr.Contains("English"))
                             subItem.Header = "English";
                         break;
                 }
