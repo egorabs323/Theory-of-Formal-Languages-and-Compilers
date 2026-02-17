@@ -13,7 +13,7 @@ namespace YourNamespace
     {
         private double currentFontSize = 12;
         private List<Tuple<TextBlock, TextBox>> editors = new List<Tuple<TextBlock, TextBox>>();
-
+        private bool isModified = false;
         public MainWindow()
         {
             InitializeComponent();
@@ -26,11 +26,11 @@ namespace YourNamespace
         private void UpdateUIForCurrentLanguage()
         {
             this.Title = LocalizationManager.GetString("AppName");
-
             UpdateMenuItems();
             UpdateToolbarButtons();
             CodeGroupBox.Header = LocalizationManager.GetString("CodeGroup");
             ResultGroupBox.Header = LocalizationManager.GetString("ResultGroup");
+            UpdateStatusBar();
         }
         private void FindInterfaceElements()
         {
@@ -211,17 +211,22 @@ namespace YourNamespace
 
         private void InitializeInterface()
         {
-            var firstTabContent = (CodeTabs.Items[0] as TabItem)?.Content as Grid;
-            if (firstTabContent != null)
+            if (CodeTabs != null && CodeTabs.Items.Count > 0)
             {
-                var textBox = FindVisualChild<TextBox>(firstTabContent);
-                var lineNumbersBlock = FindVisualChild<TextBlock>(firstTabContent);
-                if (textBox != null && lineNumbersBlock != null)
+                var firstTabContent = (CodeTabs.Items[0] as TabItem)?.Content as Grid;
+                if (firstTabContent != null)
                 {
-                    editors.Add(new Tuple<TextBlock, TextBox>(lineNumbersBlock, textBox));
-                    textBox.TextChanged += CodeInputTextBox_TextChanged;
+                    var textBox = FindVisualChild<TextBox>(firstTabContent);
+                    var lineNumbersBlock = FindVisualChild<TextBlock>(firstTabContent);
+                    if (textBox != null && lineNumbersBlock != null)
+                    {
+                        editors.Add(new Tuple<TextBlock, TextBox>(lineNumbersBlock, textBox));
+                        textBox.TextChanged += CodeInputTextBox_TextChanged;
+                        textBox.SelectionChanged += CodeInputTextBox_SelectionChanged;
+                    }
                 }
             }
+            UpdateStatusBar();
         }
 
         private void Language_Click(object sender, RoutedEventArgs e)
@@ -232,15 +237,35 @@ namespace YourNamespace
                 UpdateUIForCurrentLanguage();
             }
         }
-
-        private void CodeInputTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void CodeInputTextBox_SelectionChanged(object sender, RoutedEventArgs e)
         {
             if (sender is TextBox textBox)
             {
-                var pair = editors.FirstOrDefault(x => x.Item2 == textBox);
-                if (pair?.Item1 != null)
-                    UpdateLineNumbers(textBox, pair.Item1);
+                int line = textBox.GetLineIndexFromCharacterIndex(textBox.CaretIndex) + 1;
+                int column = textBox.CaretIndex - textBox.GetCharacterIndexFromLineIndex(line - 1) + 1;
+
+                string lineText = LocalizationManager.GetString("StatusLine");
+                string colText = LocalizationManager.GetString("StatusColumn");
+
+                StatusCursorPosition.Text = $"{lineText} {line}, {colText} {column}";
             }
+        }
+        private void UpdateStatusBar()
+        {
+            if (isModified)
+                StatusSaveState.Text = LocalizationManager.GetString("StatusModified");
+            else
+                StatusSaveState.Text = LocalizationManager.GetString("StatusReady");
+        }
+        private void MarkAsModified()
+        {
+            isModified = true;
+            UpdateStatusBar();
+        }
+        private void MarkAsSaved()
+        {
+            isModified = false;
+            UpdateStatusBar();
         }
 
         private void UpdateLineNumbers(TextBox textBox, TextBlock lineNumbers)
@@ -358,7 +383,11 @@ namespace YourNamespace
                 FontSize = currentFontSize
             };
 
-            textBox.TextChanged += (s, e) => UpdateLineNumbers(textBox, lineNumbersBlock);
+            textBox.TextChanged += (s, e) =>
+            {
+                UpdateLineNumbers(textBox, lineNumbersBlock);
+                MarkAsModified();
+            };
 
             Grid.SetColumn(lineNumbersBorder, 0);
             Grid.SetColumn(textBox, 1);
@@ -372,6 +401,7 @@ namespace YourNamespace
 
             editors.Add(new Tuple<TextBlock, TextBox>(lineNumbersBlock, textBox));
             UpdateLineNumbers(textBox, lineNumbersBlock);
+            MarkAsSaved();
         }
 
         private void Open_Click(object sender, RoutedEventArgs e)
@@ -435,6 +465,7 @@ namespace YourNamespace
                     textBox.Text = System.IO.File.ReadAllText(filePath);
                     selectedTab.Header = System.IO.Path.GetFileName(filePath);
                     selectedTab.Tag = filePath;
+                    MarkAsSaved();
                 }
             }
         }
@@ -466,12 +497,26 @@ namespace YourNamespace
                     System.IO.File.WriteAllText(saveFileDialog.FileName, textBox.Text);
                     tab.Header = System.IO.Path.GetFileName(saveFileDialog.FileName);
                     tab.Tag = saveFileDialog.FileName;
+                    MarkAsSaved();  
                 }
             }
             else
             {
                 System.IO.File.WriteAllText(filePath, textBox.Text);
                 tab.Header = System.IO.Path.GetFileName(filePath);
+                MarkAsSaved(); 
+            }
+        }
+
+        private void CodeInputTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (sender is TextBox textBox)
+            {
+                var pair = editors.FirstOrDefault(x => x.Item2 == textBox);
+                if (pair?.Item1 != null)
+                    UpdateLineNumbers(textBox, pair.Item1);
+
+                MarkAsModified();
             }
         }
 

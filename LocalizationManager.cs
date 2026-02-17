@@ -52,7 +52,12 @@ namespace YourNamespace
                 ["LineNumbering"] = "- Нумерация строк в окне редактирования",
                 ["MultiDocs"] = "- Работа с несколькими документами через вкладки",
                 ["AdaptiveInterface"] = "- Адаптивный интерфейс с возможностью изменения размеров областей",
-                ["AboutTitle"] = "О программе"
+                ["AboutTitle"] = "О программе",
+                ["StatusReady"] = "Готов",
+                ["StatusModified"] = "Изменено",
+                ["StatusSaved"] = "Сохранено",
+                ["StatusLine"] = "Стр",
+                ["StatusColumn"] = "Столб"
             },
             ["en-US"] = new Dictionary<string, string>
             {
@@ -96,7 +101,12 @@ namespace YourNamespace
                 ["LineNumbering"] = "- Line numbering in edit window",
                 ["MultiDocs"] = "- Working with multiple documents through tabs",
                 ["AdaptiveInterface"] = "- Adaptive interface with possibility to change sizes of areas",
-                ["AboutTitle"] = "About Program"
+                ["AboutTitle"] = "About Program",
+                ["StatusReady"] = "Ready",
+                ["StatusModified"] = "Modified",
+                ["StatusSaved"] = "Saved",
+                ["StatusLine"] = "Ln",
+                ["StatusColumn"] = "Col"
             }
         };
 

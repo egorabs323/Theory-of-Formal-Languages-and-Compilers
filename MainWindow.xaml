@@ -185,8 +185,41 @@
                 </Button>
             </ToolBar>
         </ToolBarTray>
+        <StatusBar DockPanel.Dock="Bottom" 
+           Background="#3C3C3C" 
+           Foreground="White" 
+           Height="25">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
 
-        <Grid DockPanel.Dock="Bottom">
+            <StatusBarItem Grid.Column="0" Padding="10,0,10,0">
+                <TextBlock x:Name="StatusCursorPosition" Text="Ln 1, Col 1"/>
+            </StatusBarItem>
+
+            <Separator Grid.Column="1" Background="#9B59B6"/>
+
+            <StatusBarItem Grid.Column="2" Padding="10,0,10,0">
+                <TextBlock x:Name="StatusSaveState" Text="Готов"/>
+            </StatusBarItem>
+
+            <Separator Grid.Column="3" Background="#9B59B6"/>
+
+            <StatusBarItem Grid.Column="4" Padding="10,0,10,0">
+                <TextBlock x:Name="StatusEncoding" Text="UTF-8"/>
+            </StatusBarItem>
+        </StatusBar>
+        <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="5"/>
