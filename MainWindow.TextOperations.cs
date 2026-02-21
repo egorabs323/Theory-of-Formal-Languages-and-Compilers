@@ -1,5 +1,7 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 
 namespace YourNamespace
@@ -10,9 +12,9 @@ namespace YourNamespace
         {
             if (CodeTabs.SelectedItem is TabItem tab)
             {
-                var textBox = FindVisualChild<TextBox>(tab.Content as DependencyObject);
-                if (textBox != null && textBox.CanUndo)
-                    textBox.Undo();
+                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
+                if (richTextBox != null && richTextBox.CanUndo)
+                    richTextBox.Undo();
             }
         }
 
@@ -20,9 +22,9 @@ namespace YourNamespace
         {
             if (CodeTabs.SelectedItem is TabItem tab)
             {
-                var textBox = FindVisualChild<TextBox>(tab.Content as DependencyObject);
-                if (textBox != null && textBox.CanRedo)
-                    textBox.Redo();
+                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
+                if (richTextBox != null && richTextBox.CanRedo)
+                    richTextBox.Redo();
             }
         }
 
@@ -30,9 +32,9 @@ namespace YourNamespace
         {
             if (CodeTabs.SelectedItem is TabItem tab)
             {
-                var textBox = FindVisualChild<TextBox>(tab.Content as DependencyObject);
-                if (textBox != null && textBox.SelectionLength > 0)
-                    textBox.Cut();
+                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
+                if (richTextBox != null && !richTextBox.Selection.IsEmpty)
+                    richTextBox.Cut();
             }
         }
 
@@ -40,9 +42,9 @@ namespace YourNamespace
         {
             if (CodeTabs.SelectedItem is TabItem tab)
             {
-                var textBox = FindVisualChild<TextBox>(tab.Content as DependencyObject);
-                if (textBox != null && textBox.SelectionLength > 0)
-                    textBox.Copy();
+                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
+                if (richTextBox != null && !richTextBox.Selection.IsEmpty)
+                    richTextBox.Copy();
             }
         }
 
@@ -50,9 +52,9 @@ namespace YourNamespace
         {
             if (CodeTabs.SelectedItem is TabItem tab)
             {
-                var textBox = FindVisualChild<TextBox>(tab.Content as DependencyObject);
-                if (textBox != null)
-                    textBox.Paste();
+                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
+                if (richTextBox != null)
+                    richTextBox.Paste();
             }
         }
 
@@ -60,9 +62,11 @@ namespace YourNamespace
         {
             if (CodeTabs.SelectedItem is TabItem tab)
             {
-                var textBox = FindVisualChild<TextBox>(tab.Content as DependencyObject);
-                if (textBox != null && textBox.SelectionLength > 0)
-                    textBox.SelectedText = string.Empty;
+                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
+                if (richTextBox != null && !richTextBox.Selection.IsEmpty)
+                {
+                    richTextBox.Selection.Text = string.Empty;
+                }
             }
         }
 
@@ -70,9 +74,9 @@ namespace YourNamespace
         {
             if (CodeTabs.SelectedItem is TabItem tab)
             {
-                var textBox = FindVisualChild<TextBox>(tab.Content as DependencyObject);
-                if (textBox != null)
-                    textBox.SelectAll();
+                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
+                if (richTextBox != null)
+                    richTextBox.SelectAll();
             }
         }
 

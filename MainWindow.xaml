@@ -47,6 +47,43 @@
             <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
         </Style>
 
+        <Style x:Key="TabItemStyle" TargetType="TabItem">
+            <Setter Property="Background" Value="#4A235A"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Padding" Value="5,5,5,5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Grid>
+                            <Border x:Name="Border"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="1,1,1,0"
+                                    CornerRadius="3,3,0,0">
+                                <ContentPresenter x:Name="ContentSite"
+                                                  VerticalAlignment="Center"
+                                                  HorizontalAlignment="Center"
+                                                  ContentSource="Header"
+                                                  Margin="10,2"/>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#4A235A"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#9B59B6"/>
+                                <Setter TargetName="Border" Property="BorderThickness" Value="1,1,1,2"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#6C3483"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <LinearGradientBrush x:Key="HeaderBackground" StartPoint="0,0" EndPoint="1,1">
             <GradientStop Color="#6C3483" Offset="0"/>
             <GradientStop Color="#9B59B6" Offset="1"/>
@@ -227,7 +264,7 @@
             </Grid.RowDefinitions>
 
             <GroupBox x:Name="CodeGroupBox" Grid.Row="0" Header="Код для выполнения" Margin="5" Style="{StaticResource GroupBoxStyle}">
-                <TabControl x:Name="CodeTabs" Background="#3C3C3C">
+                <TabControl x:Name="CodeTabs" Background="#2C2C2C" ItemContainerStyle="{StaticResource TabItemStyle}">
                     <TabItem Header="Новый документ 1">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -262,17 +299,57 @@
                           HorizontalAlignment="Stretch"/>
 
             <GroupBox x:Name="ResultGroupBox" Grid.Row="2" Header="Результат выполнения" Margin="5" Style="{StaticResource GroupBoxStyle}">
-                <ScrollViewer>
-                    <TextBox x:Name="ResultOutputTextBox" 
-                             IsReadOnly="True" 
-                             TextWrapping="Wrap" 
-                             VerticalScrollBarVisibility="Auto" 
-                             HorizontalScrollBarVisibility="Auto"
-                             Background="#2C2C2C"
-                             Foreground="White"
-                             FontFamily="Consolas"
-                             FontSize="12"/>
-                </ScrollViewer>
+                <TabControl x:Name="ResultTabs" Background="#2C2C2C" ItemContainerStyle="{StaticResource TabItemStyle}" SelectionChanged="ResultTabs_SelectionChanged">
+
+                    <TabItem Header="Вывод">
+                        <ScrollViewer>
+                            <TextBox x:Name="ResultOutputTextBox" 
+                                     IsReadOnly="True" 
+                                     TextWrapping="Wrap" 
+                                     VerticalScrollBarVisibility="Auto" 
+                                     HorizontalScrollBarVisibility="Auto"
+                                     Background="#2C2C2C"
+                                     Foreground="White"
+                                     FontFamily="Consolas"
+                                     FontSize="12"/>
+                        </ScrollViewer>
+                    </TabItem>
+                    <TabItem Header="Ошибки">
+                        <DataGrid x:Name="ErrorsDataGrid"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  CanUserResizeRows="False"
+                                  Background="#2C2C2C"
+                                  Foreground="White"
+                                  GridLinesVisibility="Horizontal"
+                                  HorizontalGridLinesBrush="#9B59B6"
+                                  VerticalGridLinesBrush="Transparent"
+                                  RowBackground="#2C2C2C"
+                                  AlternatingRowBackground="#3C3C3C"
+                                  HeadersVisibility="Column"
+                                  FontFamily="Consolas"
+                                  FontSize="12"
+                                  SelectionMode="Single"
+                                  IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Время" Binding="{Binding Timestamp}" Width="120"/>
+                                <DataGridTextColumn Header="Уровень" Binding="{Binding Level}" Width="80"/>
+                                <DataGridTextColumn Header="Модуль" Binding="{Binding Module}" Width="100"/>
+                                <DataGridTextColumn Header="Сообщение" Binding="{Binding Message}" Width="*"/>
+                                <DataGridTextColumn Header="Код" Binding="{Binding ErrorCode}" Width="60"/>
+                            </DataGrid.Columns>
+                            <DataGrid.Resources>
+                                <Style TargetType="DataGridColumnHeader">
+                                    <Setter Property="Background" Value="#6C3483"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="Padding" Value="5"/>
+                                </Style>
+                            </DataGrid.Resources>
+                        </DataGrid>
+                    </TabItem>
+                </TabControl>
             </GroupBox>
         </Grid>
     </DockPanel>

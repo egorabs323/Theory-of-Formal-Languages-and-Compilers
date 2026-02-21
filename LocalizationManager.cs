@@ -49,7 +49,26 @@ namespace YourNamespace
                 ["LineNumbering"] = "- Нумерация строк в окне редактирования",
                 ["MultiDocs"] = "- Работа с несколькими документами через вкладки",
                 ["AdaptiveInterface"] = "- Адаптивный интерфейс с возможностью изменения размеров областей",
-                ["AboutTitle"] = "О программе"
+                ["AboutTitle"] = "О программе",
+                ["StatusModified"] = "Изменено",
+                ["StatusReady"] = "Готово",
+                ["Ln"] = "Ст",
+                ["Col"] = "Ср",
+                ["ResultTab_Output"] = "Вывод",
+                ["ResultTab_Errors"] = "Ошибки",
+                ["ResultTab_Stats"] = "Статистика",
+                ["ErrorsGrid_Time"] = "Время",
+                ["ErrorsGrid_Level"] = "Уровень",
+                ["ErrorsGrid_Module"] = "Модуль",
+                ["ErrorsGrid_Message"] = "Сообщение",
+                ["ErrorsGrid_Code"] = "Код",
+                ["ErrorLevel_Error"] = "Ошибка",
+                ["ErrorLevel_Warning"] = "Предупреждение",
+                ["ErrorLevel_Info"] = "Инфо",
+                ["Errors_Clear"] = "Очистить ошибки",
+                ["Errors_Copy"] = "Копировать сообщение",
+                ["Errors_Export"] = "Экспорт в файл...",
+                ["Errors_NoErrors"] = "Ошибки не обнаружены ✓"
             },
             ["en-US"] = new Dictionary<string, string>
             {
@@ -91,7 +110,26 @@ namespace YourNamespace
                 ["LineNumbering"] = "- Line numbering in edit window",
                 ["MultiDocs"] = "- Working with multiple documents through tabs",
                 ["AdaptiveInterface"] = "- Adaptive interface with possibility to change sizes of areas",
-                ["AboutTitle"] = "About Program"
+                ["AboutTitle"] = "About Program",
+                ["StatusModified"] = "Modified",
+                ["StatusReady"] = "Ready",
+                ["Ln"] = "Ln",
+                ["Col"] = "Col",
+                ["ResultTab_Output"] = "Output",
+                ["ResultTab_Errors"] = "Errors",
+                ["ResultTab_Stats"] = "Statistics",
+                ["ErrorsGrid_Time"] = "Time",
+                ["ErrorsGrid_Level"] = "Level",
+                ["ErrorsGrid_Module"] = "Module",
+                ["ErrorsGrid_Message"] = "Message",
+                ["ErrorsGrid_Code"] = "Code",
+                ["ErrorLevel_Error"] = "Error",
+                ["ErrorLevel_Warning"] = "Warning",
+                ["ErrorLevel_Info"] = "Info",
+                ["Errors_Clear"] = "Clear Errors",
+                ["Errors_Copy"] = "Copy Message",
+                ["Errors_Export"] = "Export to File...",
+                ["Errors_NoErrors"] = "No errors detected ✓"
             }
         };
 

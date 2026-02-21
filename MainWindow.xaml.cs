@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -14,11 +15,12 @@ namespace YourNamespace
         public MainWindow()
         {
             InitializeComponent();
-            this.Closing += MainWindow_Closing;
             FindInterfaceElements();
             InitializeInterface();
-            UpdateUIForCurrentLanguage();
+            InitializeErrorGrid();
             CodeTabs.SelectionChanged += CodeTabs_SelectionChanged;
+            ResultTabs.SelectionChanged += ResultTabs_SelectionChanged;
+            UpdateUIForCurrentLanguage();
         }
 
         private void InitializeInterface()
@@ -26,6 +28,7 @@ namespace YourNamespace
             if (CodeInputTextBox != null && LineNumbersTextBlock != null)
             {
                 editors.Add(new Tuple<TextBlock, TextBox>(LineNumbersTextBlock, CodeInputTextBox));
+
                 CodeInputTextBox.TextChanged += (s, e) =>
                 {
                     UpdateLineNumbers(CodeInputTextBox, LineNumbersTextBlock);

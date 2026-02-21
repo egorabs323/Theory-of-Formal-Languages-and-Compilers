@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,6 +12,7 @@ namespace YourNamespace
     {
         private GroupBox _codeGroupBox = null;
         private GroupBox _resultGroupBox = null;
+        private ObservableCollection<ErrorEntry> _errorsCollection = new ObservableCollection<ErrorEntry>();
 
         private void FindInterfaceElements()
         {
@@ -34,23 +36,19 @@ namespace YourNamespace
             return null;
         }
 
-        private void UpdateUIForCurrentLanguage()
+        public void UpdateUIForCurrentLanguage()
         {
             this.Title = LocalizationManager.GetString("AppName");
+            if (_codeGroupBox != null)
+                _codeGroupBox.Header = LocalizationManager.GetString("CodeGroup");
+            if (_resultGroupBox != null)
+                _resultGroupBox.Header = LocalizationManager.GetString("ResultGroup");
             UpdateMenuItems();
             UpdateToolbarButtons();
-            CodeGroupBox.Header = LocalizationManager.GetString("CodeGroup");
-            ResultGroupBox.Header = LocalizationManager.GetString("ResultGroup");
             UpdateStatusBar();
-
-            if (CodeTabs.SelectedItem is TabItem selectedTab)
-            {
-                var textBox = FindVisualChild<TextBox>(selectedTab.Content as DependencyObject);
-                if (textBox != null)
-                {
-                    UpdateCursorPosition(textBox);
-                }
-            }
+            UpdateActiveCursorPosition();
+            UpdateResultTabsLocalization();
+            UpdateErrorsGridLocalization();
         }
 
         private void UpdateMenuItems()
@@ -229,6 +227,114 @@ namespace YourNamespace
             }
         }
 
+        private void UpdateActiveCursorPosition()
+        {
+            if (CodeTabs.SelectedItem is TabItem selectedTab)
+            {
+                var textBox = FindVisualChild<TextBox>(selectedTab.Content as DependencyObject);
+                if (textBox != null)
+                {
+                    UpdateCursorPosition(textBox);
+                }
+            }
+        }
+        private void UpdateResultTabsLocalization()
+        {
+            if (ResultTabs == null) return;
+
+            int i = 0;
+            foreach (TabItem tab in ResultTabs.Items)
+            {
+                switch (i)
+                {
+                    case 0: tab.Header = LocalizationManager.GetString("ResultTab_Output"); break;
+                    case 1: tab.Header = LocalizationManager.GetString("ResultTab_Errors"); break;
+                    case 2: tab.Header = LocalizationManager.GetString("ResultTab_Stats"); break;
+                }
+                i++;
+            }
+        }
+        private void UpdateErrorsGridLocalization()
+        {
+            if (ErrorsDataGrid?.Columns.Count < 5) return;
+
+            ErrorsDataGrid.Columns[0].Header = LocalizationManager.GetString("ErrorsGrid_Time");
+            ErrorsDataGrid.Columns[1].Header = LocalizationManager.GetString("ErrorsGrid_Level");
+            ErrorsDataGrid.Columns[2].Header = LocalizationManager.GetString("ErrorsGrid_Module");
+            ErrorsDataGrid.Columns[3].Header = LocalizationManager.GetString("ErrorsGrid_Message");
+            ErrorsDataGrid.Columns[4].Header = LocalizationManager.GetString("ErrorsGrid_Code");
+        }
+
+        private void InitializeErrorGrid()
+        {
+            if (ErrorsDataGrid == null) return;
+
+            ErrorsDataGrid.ItemsSource = _errorsCollection;
+            ErrorsDataGrid.LoadingRow += (s, e) =>
+            {
+                if (e.Row.Item is ErrorEntry error)
+                {
+                    string level = error.Level?.ToLowerInvariant();
+
+                    if (level == "error" || level == "ошибка")
+                        e.Row.Background = new SolidColorBrush(Color.FromRgb(80, 30, 30));
+                    else if (level == "warning" || level == "предупреждение")
+                        e.Row.Background = new SolidColorBrush(Color.FromRgb(80, 60, 20));
+                    else if (level == "info" || level == "инфо")
+                        e.Row.Background = new SolidColorBrush(Color.FromRgb(30, 50, 80));
+                }
+            };
+        }
+        public void AddError(string module, string message, string errorCode = "")
+        {
+            _errorsCollection.Add(new ErrorEntry(
+                LocalizationManager.GetString("ErrorLevel_Error"),
+                module,
+                message,
+                errorCode));
+            SwitchToErrorsTab();
+        }
+
+        public void AddWarning(string module, string message, string errorCode = "")
+        {
+            _errorsCollection.Add(new ErrorEntry(
+                LocalizationManager.GetString("ErrorLevel_Warning"),
+                module,
+                message,
+                errorCode));
+        }
+
+        public void AddInfo(string module, string message)
+        {
+            _errorsCollection.Add(new ErrorEntry(
+                LocalizationManager.GetString("ErrorLevel_Info"),
+                module,
+                message));
+        }
+
+        public void ClearErrors()
+        {
+            _errorsCollection.Clear();
+        }
+
+
+        private void SwitchToErrorsTab()
+        {
+            if (ResultTabs == null) return;
+
+            string errorsTabName = LocalizationManager.GetString("ResultTab_Errors");
+
+            foreach (TabItem tab in ResultTabs.Items)
+            {
+                string header = tab.Header?.ToString();
+                if (header == errorsTabName || header == "Ошибки" || header == "Errors")
+                {
+                    ResultTabs.SelectedItem = tab;
+                    break;
+                }
+            }
+        }
+
         private void CodeTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (CodeTabs.SelectedItem is TabItem selectedTab)
@@ -236,14 +342,18 @@ namespace YourNamespace
                 var textBox = FindVisualChild<TextBox>(selectedTab.Content as DependencyObject);
                 if (textBox != null && tabModifiedState.ContainsKey(textBox))
                 {
-                    if (tabModifiedState[textBox])
-                        StatusSaveState.Text = LocalizationManager.GetString("StatusModified");
-                    else
-                        StatusSaveState.Text = LocalizationManager.GetString("StatusReady");
+                    StatusSaveState.Text = tabModifiedState[textBox]
+                        ? LocalizationManager.GetString("StatusModified")
+                        : LocalizationManager.GetString("StatusReady");
 
                     UpdateCursorPosition(textBox);
                 }
             }
+        }
+
+        private void ResultTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+ 
         }
 
         private void CodeInputTextBox_SelectionChanged(object sender, RoutedEventArgs e)
@@ -261,8 +371,8 @@ namespace YourNamespace
             int line = textBox.GetLineIndexFromCharacterIndex(textBox.CaretIndex) + 1;
             int column = textBox.CaretIndex - textBox.GetCharacterIndexFromLineIndex(line - 1) + 1;
 
-            string lineText = LocalizationManager.GetString("StatusLine");
-            string colText = LocalizationManager.GetString("StatusColumn");
+            string lineText = LocalizationManager.GetString("Ln");
+            string colText = LocalizationManager.GetString("Col");
 
             StatusCursorPosition.Text = $"{lineText} {line}, {colText} {column}";
         }

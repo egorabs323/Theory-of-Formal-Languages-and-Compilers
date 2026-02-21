@@ -63,6 +63,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ErrorEntry.cs" />
     <Compile Include="LocalizationManager.cs" />
     <Compile Include="MainWindow.Events.cs" />
     <Compile Include="MainWindow.FileOperations.cs" />
