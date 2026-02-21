@@ -118,9 +118,11 @@ namespace YourNamespace
                             subItem.Header = $"_{LocalizationManager.GetString("CreateMenu")}";
                         else if (cleanHdr.Contains("Открыть") || cleanHdr.Contains("Open"))
                             subItem.Header = $"_{LocalizationManager.GetString("OpenMenu")}";
-                        else if (cleanHdr.Contains("Сохранить") && !cleanHdr.Contains("как"))
+                        else if ((cleanHdr.Contains("Сохранить") || cleanHdr.Contains("Save")) &&
+                                 !(cleanHdr.Contains("как") || cleanHdr.Contains("As")))
                             subItem.Header = $"_{LocalizationManager.GetString("SaveMenu")}";
-                        else if (cleanHdr.Contains("Сохранить") && cleanHdr.Contains("как"))
+                        else if ((cleanHdr.Contains("Сохранить") || cleanHdr.Contains("Save")) &&
+                                 (cleanHdr.Contains("как") || cleanHdr.Contains("As")))
                             subItem.Header = LocalizationManager.GetString("SaveAsMenu");
                         else if (cleanHdr.Contains("Закрыть") || cleanHdr.Contains("Close"))
                             subItem.Header = $"_{LocalizationManager.GetString("CloseMenu")}";
@@ -183,9 +185,11 @@ namespace YourNamespace
                         button.ToolTip = LocalizationManager.GetString("CreateMenu") + " (Ctrl+N)";
                     else if (tooltip.Contains("Открыть") || tooltip.Contains("Open"))
                         button.ToolTip = LocalizationManager.GetString("OpenMenu") + " (Ctrl+O)";
-                    else if (tooltip.Contains("Сохранить") && !tooltip.Contains("как"))
+                    else if ((tooltip.Contains("Сохранить") || tooltip.Contains("Save")) &&
+                             !(tooltip.Contains("как") || tooltip.Contains("As")))
                         button.ToolTip = LocalizationManager.GetString("SaveMenu") + " (Ctrl+S)";
-                    else if (tooltip.Contains("Сохранить как"))
+                    else if ((tooltip.Contains("Сохранить") || tooltip.Contains("Save As")) &&
+                             (tooltip.Contains("как") || tooltip.Contains("As")))
                         button.ToolTip = LocalizationManager.GetString("SaveAsMenu");
                     else if (tooltip.Contains("Закрыть") || tooltip.Contains("Close"))
                         button.ToolTip = LocalizationManager.GetString("CloseMenu") + " (Ctrl+W)";

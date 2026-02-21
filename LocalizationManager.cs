@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
-using System.Windows;
 
 namespace YourNamespace
 {
@@ -36,8 +35,6 @@ namespace YourNamespace
                 ["AboutMenu"] = "О программе",
                 ["FontSizeMenu"] = "Размер шрифта",
                 ["LanguageMenu"] = "Язык интерфейса",
-                ["CodeGroup"] = "Код для выполнения",
-                ["ResultGroup"] = "Результат выполнения",
                 ["ConfirmationExit"] = "Подтверждение выхода",
                 ["ConfirmationClose"] = "Подтверждение закрытия",
                 ["UnsavedChangesTab"] = "У вас есть несохраненные изменения во вкладке",
@@ -52,12 +49,7 @@ namespace YourNamespace
                 ["LineNumbering"] = "- Нумерация строк в окне редактирования",
                 ["MultiDocs"] = "- Работа с несколькими документами через вкладки",
                 ["AdaptiveInterface"] = "- Адаптивный интерфейс с возможностью изменения размеров областей",
-                ["AboutTitle"] = "О программе",
-                ["StatusReady"] = "Готово",
-                ["StatusModified"] = "Изменено",
-                ["StatusSaved"] = "Сохранено",
-                ["StatusLine"] = "Стр",
-                ["StatusColumn"] = "Столб"
+                ["AboutTitle"] = "О программе"
             },
             ["en-US"] = new Dictionary<string, string>
             {
@@ -71,12 +63,12 @@ namespace YourNamespace
                 ["CreateMenu"] = "Create",
                 ["OpenMenu"] = "Open",
                 ["SaveMenu"] = "Save",
-                ["SaveAsMenu"] = "Save As...", 
+                ["SaveAsMenu"] = "Save As...",
                 ["CloseMenu"] = "Close",
                 ["ExitMenu"] = "Exit",
                 ["UndoMenu"] = "Undo",
                 ["RedoMenu"] = "Redo",
-                ["CutMenu"] = "Cut",         
+                ["CutMenu"] = "Cut",
                 ["CopyMenu"] = "Copy",
                 ["PasteMenu"] = "Paste",
                 ["DeleteMenu"] = "Delete",
@@ -85,8 +77,6 @@ namespace YourNamespace
                 ["AboutMenu"] = "About",
                 ["FontSizeMenu"] = "Font Size",
                 ["LanguageMenu"] = "Interface Language",
-                ["CodeGroup"] = "Code for execution",
-                ["ResultGroup"] = "Execution result",
                 ["ConfirmationExit"] = "Exit Confirmation",
                 ["ConfirmationClose"] = "Close Confirmation",
                 ["UnsavedChangesTab"] = "You have unsaved changes in tab",
@@ -101,12 +91,7 @@ namespace YourNamespace
                 ["LineNumbering"] = "- Line numbering in edit window",
                 ["MultiDocs"] = "- Working with multiple documents through tabs",
                 ["AdaptiveInterface"] = "- Adaptive interface with possibility to change sizes of areas",
-                ["AboutTitle"] = "About Program",
-                ["StatusReady"] = "Ready",
-                ["StatusModified"] = "Modified",
-                ["StatusSaved"] = "Saved",
-                ["StatusLine"] = "Ln",
-                ["StatusColumn"] = "Col"
+                ["AboutTitle"] = "About Program"
             }
         };
 
@@ -115,7 +100,7 @@ namespace YourNamespace
         public static void SwitchLanguage(string cultureCode)
         {
             currentCulture = cultureCode;
-            System.Threading.Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo(cultureCode);
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo(cultureCode);
         }
 
         public static string GetCurrentCulture()
@@ -129,7 +114,7 @@ namespace YourNamespace
             {
                 return languageResources[currentCulture][key];
             }
-            return languageResources["ru-RU"].ContainsKey(key) ? languageResources["ru-RU"][key] : key;
+            return key;
         }
     }
 }
