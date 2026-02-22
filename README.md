@@ -42,5 +42,6 @@
 3. Соберите проект
    
 ## 7) Путь к готовому исполняемому файлу.
-
+- Далее ссылка для скачивания готового проекта
+  [Скачать Visual Studio](https://github.com/egorabs323/Theory-of-Formal-Languages-and-Compilers/releases/download/1лаб/TestApp.zip)
 ## 8) Описание интерфейса и функций (руководство пользователя)
