@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -26,10 +26,14 @@ namespace YourNamespace
             {
                 string hdr = groupBox.Header?.ToString();
                 if (string.IsNullOrEmpty(hdr)) continue;
+                string cleanHdr = hdr.Replace("_", "");
 
                 foreach (var target in possibleHeaders)
                 {
-                    if (hdr.StartsWith(target.Split(' ')[0]))
+                    string cleanTarget = target.Replace("_", "");
+                    string firstWord = cleanTarget.Split(' ')[0];
+
+                    if (cleanHdr.StartsWith(firstWord))
                         return groupBox;
                 }
             }
@@ -39,10 +43,14 @@ namespace YourNamespace
         public void UpdateUIForCurrentLanguage()
         {
             this.Title = LocalizationManager.GetString("AppName");
-            if (_codeGroupBox != null)
-                _codeGroupBox.Header = LocalizationManager.GetString("CodeGroup");
-            if (_resultGroupBox != null)
-                _resultGroupBox.Header = LocalizationManager.GetString("ResultGroup");
+            var codeGroup = FindGroupBoxByHeader(new[] { "Код для выполнения", "Code for execution" });
+            if (codeGroup != null)
+                codeGroup.Header = LocalizationManager.GetString("CodeGroup");
+
+            var resultGroup = FindGroupBoxByHeader(new[] { "Результат выполнения", "Execution result" });
+            if (resultGroup != null)
+                resultGroup.Header = LocalizationManager.GetString("ResultGroup");
+
             UpdateMenuItems();
             UpdateToolbarButtons();
             UpdateStatusBar();
