@@ -194,8 +194,9 @@ namespace YourNamespace
             foreach (TabItem tab in CodeTabs.Items.OfType<TabItem>())
             {
                 var textBox = FindVisualChild<TextBox>(tab.Content as DependencyObject);
-                if (textBox != null && !string.IsNullOrEmpty(textBox.Text))
-                {
+                if (textBox != null && tabModifiedState.TryGetValue(textBox, out bool isModified) && isModified)
+                
+                    {
                     MessageBoxResult result = MessageBox.Show(
                         $"{LocalizationManager.GetString("UnsavedChangesTab")} '{tab.Header}'. {LocalizationManager.GetString("SaveBeforeExit")}",
                         LocalizationManager.GetString("ConfirmationExit"),
@@ -222,13 +223,38 @@ namespace YourNamespace
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (!ConfirmSaveBeforeExit())
+            {
                 e.Cancel = true;
+                return;
+            }
+
+            var result = MessageBox.Show(
+                LocalizationManager.GetString("Выйти?"),
+                LocalizationManager.GetString("Подтверждение"),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                e.Cancel = true; 
+            }
         }
 
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
-            if (ConfirmSaveBeforeExit())
+            if (!ConfirmSaveBeforeExit())
+                return;
+
+            var result = MessageBox.Show(
+                LocalizationManager.GetString("В"),
+                LocalizationManager.GetString("Подтверждение"),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
                 Application.Current.Shutdown();
+            }
         }
 
         private void Close_Click(object sender, RoutedEventArgs e)
@@ -236,7 +262,7 @@ namespace YourNamespace
             if (CodeTabs.SelectedItem is TabItem tab)
             {
                 var textBox = FindVisualChild<TextBox>(tab.Content as DependencyObject);
-                if (textBox != null && !string.IsNullOrEmpty(textBox.Text))
+                if (textBox != null && tabModifiedState.TryGetValue(textBox, out bool isModified) && isModified)
                 {
                     MessageBoxResult result = MessageBox.Show(
                         $"{LocalizationManager.GetString("UnsavedChangesTab")} '{tab.Header}'. {LocalizationManager.GetString("SaveBeforeClose")}",

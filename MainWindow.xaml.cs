@@ -21,6 +21,7 @@ namespace YourNamespace
             CodeTabs.SelectionChanged += CodeTabs_SelectionChanged;
             ResultTabs.SelectionChanged += ResultTabs_SelectionChanged;
             UpdateUIForCurrentLanguage();
+
         }
 
         private void InitializeInterface()
