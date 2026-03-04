@@ -5,8 +5,6 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <LangVersion>latest</LangVersion>
-    
-    <!-- Настройки архитектуры для исправления вашей ошибки -->
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
     <UseSharedCompilation>false</UseSharedCompilation>
@@ -16,8 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- В современном формате системные библиотеки подключать не нужно -->
-    <!-- Они подтягиваются автоматически через SDK -->
+  
   </ItemGroup>
 
 </Project>
