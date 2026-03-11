@@ -336,7 +336,8 @@
                                   FontFamily="Consolas"
                                   FontSize="12"
                                   SelectionMode="Single"
-                                  IsReadOnly="True">
+                                  IsReadOnly="True"
+                                   SelectionChanged="ErrorsDataGrid_SelectionChanged">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Время" Binding="{Binding Timestamp}" Width="120"/>
                                 <DataGridTextColumn Header="Уровень" Binding="{Binding Level}" Width="80"/>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Text.RegularExpressions;
 
 namespace YourNamespace
 {
@@ -72,6 +73,44 @@ namespace YourNamespace
                     ));
                 }
                 ErrorsDataGrid.ItemsSource = errorList;
+            }
+        }
+        private void ErrorsDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ErrorsDataGrid.SelectedItem is ErrorEntry selectedError)
+            {
+                var lineMatch = System.Text.RegularExpressions.Regex.Match(selectedError.Message, @"строке\s+(\d+)");
+                var colMatch = System.Text.RegularExpressions.Regex.Match(selectedError.Message, @"колонка\s+(\d+)");
+
+                if (lineMatch.Success && colMatch.Success)
+                {
+                    if (int.TryParse(lineMatch.Groups[1].Value, out int line) &&
+                        int.TryParse(colMatch.Groups[1].Value, out int col))
+                    {
+                        if (CodeTabs.SelectedItem is TabItem selectedTab)
+                        {
+                            var textBox = FindVisualChild<TextBox>(selectedTab.Content as DependencyObject);
+                            if (textBox != null)
+                            {
+                                try
+                                {
+                                    int caretIndex = textBox.GetCharacterIndexFromLineIndex(line - 1) + col - 1;
+
+                                    if (caretIndex >= 0 && caretIndex <= textBox.Text.Length)
+                                    {
+                                        textBox.CaretIndex = caretIndex;
+                                        textBox.Focus();
+                                        textBox.ScrollToVerticalOffset(textBox.GetLineIndexFromCharacterIndex(caretIndex));
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"Ошибка навигации: {ex.Message}");
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
