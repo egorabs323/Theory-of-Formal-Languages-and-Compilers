@@ -223,7 +223,7 @@
                 <Button Style="{StaticResource ToolbarButtonStyle}"
         Click="Analyze_Click"
         ToolTip="Запустить лексический анализ">
-                    <TextBlock Text="🔍" TextAlignment="Center"/>
+                    <TextBlock Text="&#xE768;" FontFamily="Segoe MDL2 Assets" TextAlignment="Center"/>
                 </Button>
             </ToolBar>
         </ToolBarTray>
