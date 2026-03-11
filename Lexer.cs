@@ -122,7 +122,9 @@ public class Lexer
 
     private bool IsKeyword(string word)
     {
-        return word == "double" || word == "float";
+        return word == "double" ||
+               word == "float" ||
+               word == "final";  
     }
 
     private void Advance()
