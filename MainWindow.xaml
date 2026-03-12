@@ -307,17 +307,38 @@
                 <TabControl x:Name="ResultTabs" Background="#2C2C2C" ItemContainerStyle="{StaticResource TabItemStyle}" SelectionChanged="ResultTabs_SelectionChanged">
 
                     <TabItem Header="Вывод">
-                        <ScrollViewer>
-                            <TextBox x:Name="ResultOutputTextBox" 
-                                     IsReadOnly="True" 
-                                     TextWrapping="Wrap" 
-                                     VerticalScrollBarVisibility="Auto" 
-                                     HorizontalScrollBarVisibility="Auto"
-                                     Background="#2C2C2C"
-                                     Foreground="White"
-                                     FontFamily="Consolas"
-                                     FontSize="12"/>
-                        </ScrollViewer>
+                        <DataGrid x:Name="TokensDataGrid"
+              AutoGenerateColumns="False"
+              CanUserAddRows="False"
+              CanUserDeleteRows="False"
+              CanUserResizeRows="False"
+              CanUserSortColumns="False"
+              Background="#2C2C2C"
+              Foreground="White"
+              GridLinesVisibility="Horizontal"
+              HorizontalGridLinesBrush="#9B59B6"
+              VerticalGridLinesBrush="Transparent"
+              RowBackground="#2C2C2C"
+              AlternatingRowBackground="#3C3C3C"
+              HeadersVisibility="Column"
+              FontFamily="Consolas"
+              FontSize="12"
+              IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Условный код" Binding="{Binding Code}" Width="100"/>
+                                <DataGridTextColumn Header="Тип лексемы" Binding="{Binding TokenType}" Width="150"/>
+                                <DataGridTextColumn Header="Лексема" Binding="{Binding Value}" Width="150"/>
+                                <DataGridTextColumn Header="Местоположение" Binding="{Binding Location}" Width="*"/>
+                            </DataGrid.Columns>
+                            <DataGrid.Resources>
+                                <Style TargetType="DataGridColumnHeader">
+                                    <Setter Property="Background" Value="#6C3483"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="Padding" Value="5"/>
+                                </Style>
+                            </DataGrid.Resources>
+                        </DataGrid>
                     </TabItem>
                     <TabItem Header="Ошибки">
                         <DataGrid x:Name="ErrorsDataGrid"

@@ -48,16 +48,40 @@ namespace YourNamespace
             var lexer = new Lexer(code);
             var tokens = lexer.Tokenize();
 
-            var output = new System.Text.StringBuilder();
+            var lexemes = new List<LexemeEntry>();
+
             foreach (var token in tokens)
             {
-                if (token.Type != TokenType.Whitespace)
-                {
-                    output.AppendLine(token.ToString());
-                }
-            }
-            ResultOutputTextBox.Text = output.ToString();
+                if (token.Type == TokenType.Whitespace) continue; 
 
+                int codeValue = token.Type switch
+                {
+                    TokenType.Keyword => 14, 
+                    TokenType.Identifier => 2, 
+                    TokenType.NumberLiteral => 1, 
+                    TokenType.Operator => 10, 
+                    TokenType.Separator => 16, 
+                    _ => 99
+                };
+
+                string typeString = token.Type switch
+                {
+                    TokenType.Keyword => "keyword",
+                    TokenType.Identifier => "identifier",
+                    TokenType.NumberLiteral => "number",
+                    TokenType.Operator => "operator",
+                    TokenType.Separator => "separator",
+                    TokenType.Error => "error",
+                    TokenType.Whitespace => "whitespace",
+                    _ => "unknown"
+                };
+
+                string location = $"строка {token.Line}, {token.Column}-{token.Column + token.Length - 1}";
+
+                lexemes.Add(new LexemeEntry(codeValue, typeString, token.Value, location));
+            }
+
+            TokensDataGrid.ItemsSource = lexemes;
             ErrorsDataGrid.ItemsSource = null;
             var errors = tokens.FindAll(t => t.Type == TokenType.Error);
             if (errors.Count > 0)
