@@ -33,6 +33,11 @@ public class Lexer
             {
                 tokens.Add(ReadIdentifierOrKeyword());
             }
+            else if (currentChar == '-' || currentChar == '+')
+            {
+                tokens.Add(new Token { Type = TokenType.Operator, Value = currentChar.ToString(), Line = line, Column = column, Length = 1 });
+                Advance();
+            }
             else if (char.IsDigit(currentChar) || currentChar == '.')
             {
                 tokens.Add(ReadNumberLiteral());
@@ -101,23 +106,65 @@ public class Lexer
         int startLine = line;
         int startCol = column;
         int start = position;
-        var regex = new Regex(@"^\d*\.?\d+(?:[eE][+-]?\d+)?[fFdD]?");
 
-        var remaining = input.Substring(position);
-        var match = regex.Match(remaining);
-
-        if (match.Success)
+        bool hasDigits = false;
+        bool hasDot = false;
+        bool hasExponent = false;
+        while (position < input.Length && char.IsDigit(input[position]))
         {
-            string numberStr = match.Value;
-            int len = numberStr.Length;
-            position += len;
-            column += len;
-            return new Token { Type = TokenType.NumberLiteral, Value = numberStr, Line = startLine, Column = startCol, Length = len };
+            position++;
+            column++;
+            hasDigits = true;
         }
-        string errorChar = input.Substring(position, 1);
-        position++;
-        column++;
-        return new Token { Type = TokenType.Error, Value = errorChar, Line = startLine, Column = startCol, Length = 1 };
+        if (position < input.Length && input[position] == '.')
+        {
+            position++;
+            column++;
+            hasDot = true;
+
+            while (position < input.Length && char.IsDigit(input[position]))
+            {
+                position++;
+                column++;
+                hasDigits = true;
+            }
+        }
+
+        if (position < input.Length && (input[position] == 'e' || input[position] == 'E'))
+        {
+            position++;
+            column++;
+            hasExponent = true;
+
+            if (position < input.Length && (input[position] == '+' || input[position] == '-'))
+            {
+                position++;
+                column++;
+            }
+            if (position >= input.Length || !char.IsDigit(input[position]))
+            {
+                return new Token { Type = TokenType.Error, Value = "e", Line = startLine, Column = startCol + (position - start - 1), Length = 1 };
+            }
+
+            while (position < input.Length && char.IsDigit(input[position]))
+            {
+                position++;
+                column++;
+            }
+        }
+
+        if (position < input.Length && (input[position] == 'f' || input[position] == 'F' || input[position] == 'd' || input[position] == 'D'))
+        {
+            position++;
+            column++;
+        }
+        if (!hasDigits)
+        {
+            return new Token { Type = TokenType.Error, Value = input.Substring(start, 1), Line = startLine, Column = startCol, Length = 1 };
+        }
+
+        string value = input.Substring(start, position - start);
+        return new Token { Type = TokenType.NumberLiteral, Value = value, Line = startLine, Column = startCol, Length = position - start };
     }
 
     private bool IsKeyword(string word)
