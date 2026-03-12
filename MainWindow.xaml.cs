@@ -52,15 +52,17 @@ namespace YourNamespace
 
             foreach (var token in tokens)
             {
-                if (token.Type == TokenType.Whitespace) continue; 
+                //if (token.Type == TokenType.Whitespace) continue;
 
                 int codeValue = token.Type switch
                 {
-                    TokenType.Keyword => 14, 
-                    TokenType.Identifier => 2, 
-                    TokenType.NumberLiteral => 1, 
-                    TokenType.Operator => 10, 
-                    TokenType.Separator => 16, 
+                    TokenType.Keyword => 14,
+                    TokenType.Identifier => 2,
+                    TokenType.NumberLiteral => 1,
+                    TokenType.Operator => 10,
+                    TokenType.Separator => 16,
+                    TokenType.Whitespace => 11,
+                    TokenType.Error => 99,
                     _ => 99
                 };
 
@@ -71,18 +73,23 @@ namespace YourNamespace
                     TokenType.NumberLiteral => "number",
                     TokenType.Operator => "operator",
                     TokenType.Separator => "separator",
-                    TokenType.Error => "error",
                     TokenType.Whitespace => "whitespace",
+                    TokenType.Error => "error",
                     _ => "unknown"
                 };
 
+                string displayValue = token.Type == TokenType.Whitespace
+                    ? "(whitespace)"
+                    : token.Value;
+
                 string location = $"строка {token.Line}, {token.Column}-{token.Column + token.Length - 1}";
 
-                lexemes.Add(new LexemeEntry(codeValue, typeString, token.Value, location));
+                lexemes.Add(new LexemeEntry(codeValue, typeString, displayValue, location));
             }
 
             TokensDataGrid.ItemsSource = lexemes;
             ErrorsDataGrid.ItemsSource = null;
+
             var errors = tokens.FindAll(t => t.Type == TokenType.Error);
             if (errors.Count > 0)
             {
