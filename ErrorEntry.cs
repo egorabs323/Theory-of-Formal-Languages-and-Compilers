@@ -19,4 +19,19 @@ namespace YourNamespace
             ErrorCode = errorCode;
         }
     }
+    public class LexemeEntry
+    {
+        public int Code { get; set; }
+        public string TokenType { get; set; }
+        public string Value { get; set; }
+        public string Location { get; set; }
+
+        public LexemeEntry(int code, string tokenType, string value, string location)
+        {
+            Code = code;
+            TokenType = tokenType;
+            Value = value;
+            Location = location;
+        }
+    }
 }
