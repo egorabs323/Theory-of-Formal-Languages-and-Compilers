@@ -106,7 +106,7 @@
 
 ### 4) Путь к готовому исполняемому файлу.
 - Далее ссылка для скачивания готового проекта
-  [Скачать исполняемый файл](sha256:5f36059824cc9d8d8b83f37feea6fc771b2453ac31bc32bdb98f492595519b76)
+  [Скачать исполняемый файл](https://github.com/egorabs323/Theory-of-Formal-Languages-and-Compilers/releases/download/2лаб/laba1.exe)
   
 ### 5)Вариант задания.
 
