@@ -1,5 +1,5 @@
 ﻿using System;
-//
+//////
 namespace YourNamespace
 {
     public enum TokenType
