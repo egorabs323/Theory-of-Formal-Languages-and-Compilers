@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace YourNamespace
 {
@@ -45,24 +46,25 @@ namespace YourNamespace
         private void Analyze_Click(object sender, RoutedEventArgs e)
         {
             string code = CodeInputTextBox.Text;
-            var lexer = new Lexer(code);
+                       var lexer = new Lexer(code);
             var tokens = lexer.Tokenize();
 
             var lexemes = new List<LexemeEntry>();
+            var allErrors = new List<ParserErrorEntry>();
 
             foreach (var token in tokens)
             {
-                //if (token.Type == TokenType.Whitespace) continue;
+                //if (token.Type == TokenType.Whitespace) continue; 
 
                 int codeValue = token.Type switch
                 {
-                    TokenType.Keyword => 14,
+                    TokenType.Keyword => 1,
                     TokenType.Identifier => 2,
-                    TokenType.NumberLiteral => 1,
-                    TokenType.Operator => 10,
-                    TokenType.Separator => 16,
-                    TokenType.Whitespace => 11,
-                    TokenType.Error => 99,
+                    TokenType.NumberLiteral => 2,
+                    TokenType.Operator => 4,
+                    TokenType.Separator => 5,
+                    TokenType.Whitespace => 6,
+                    TokenType.Error => 7,
                     _ => 99
                 };
 
@@ -78,33 +80,47 @@ namespace YourNamespace
                     _ => "unknown"
                 };
 
-                string displayValue = token.Type == TokenType.Whitespace
-                    ? "(whitespace)"
-                    : token.Value;
-
                 string location = $"строка {token.Line}, {token.Column}-{token.Column + token.Length - 1}";
+                lexemes.Add(new LexemeEntry(codeValue, typeString, token.Value, location));
 
-                lexemes.Add(new LexemeEntry(codeValue, typeString, displayValue, location));
+                if (token.Type == TokenType.Error)
+                {
+                    allErrors.Add(new ParserErrorEntry(
+                        $"Недопустимый символ: '{token.Value}'",
+                        token.Line, token.Column));
+                }
+            }
+            var parser = new Parser(tokens);
+            var parseResult = parser.Parse();
+
+            if (parseResult.Errors != null)
+            {
+                foreach (var err in parseResult.Errors)
+                {
+                    allErrors.Add(new ParserErrorEntry(err.Message, err.Line, err.Column));
+                }
             }
 
             TokensDataGrid.ItemsSource = lexemes;
-            ErrorsDataGrid.ItemsSource = null;
 
-            var errors = tokens.FindAll(t => t.Type == TokenType.Error);
-            if (errors.Count > 0)
+            if (allErrors.Count > 0)
             {
-                var errorList = new List<ErrorEntry>();
-                foreach (var err in errors)
-                {
-                    errorList.Add(new ErrorEntry(
-                        LocalizationManager.GetString("ErrorLevel_Error"),
-                        "Лексер",
-                        $"Недопустимый символ: '{err.Value}' на строке {err.Line}, колонка {err.Column}",
-                        "LEX"
-                    ));
-                }
-                ErrorsDataGrid.ItemsSource = errorList;
+                ErrorsDataGrid.ItemsSource = allErrors;
+                ResultTabs.SelectedItem = ResultTabs.Items[1]; 
             }
+            else
+            {
+                ErrorsDataGrid.ItemsSource = null;
+
+                if (parseResult.Success)
+                {
+                    var successEntry = new LexemeEntry(0, " Успех", "Синтаксис корректен",
+                        $"Обработано {lexemes.Count} лексем");
+                    TokensDataGrid.ItemsSource = new[] { successEntry }.Concat(lexemes).ToList();
+                }
+            }
+
+            UpdateStatusBar();
         }
         private void ErrorsDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -142,6 +158,39 @@ namespace YourNamespace
                         }
                     }
                 }
+            }
+        }
+        public class ParserErrorEntry
+        {
+            public string Timestamp { get; set; }
+            public string Level { get; set; }
+            public string Module { get; set; }
+            public string Message { get; set; }
+            public string ErrorCode { get; set; }
+
+            public ParserErrorEntry(string message, int line, int column)
+            {
+                Timestamp = DateTime.Now.ToString("HH:mm:ss");
+                Level = "Error";
+                Module = "Parser";
+                Message = $"Строка {line}, поз. {column}: {message}";
+                ErrorCode = "SYN";
+            }
+        }
+
+        public class LexemeEntry
+        {
+            public int Code { get; set; }
+            public string TokenType { get; set; }
+            public string Value { get; set; }
+            public string Location { get; set; }
+
+            public LexemeEntry(int code, string tokenType, string value, string location)
+            {
+                Code = code;
+                TokenType = tokenType;
+                Value = value;
+                Location = location;
             }
         }
     }
