@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System.Windows.Media;
 
 namespace YourNamespace
 {
@@ -23,7 +24,6 @@ namespace YourNamespace
             CodeTabs.SelectionChanged += CodeTabs_SelectionChanged;
             ResultTabs.SelectionChanged += ResultTabs_SelectionChanged;
             UpdateUIForCurrentLanguage();
-
         }
 
         private void InitializeInterface()
@@ -43,19 +43,18 @@ namespace YourNamespace
             }
             UpdateStatusBar();
         }
+
         private void Analyze_Click(object sender, RoutedEventArgs e)
         {
             string code = CodeInputTextBox.Text;
-                       var lexer = new Lexer(code);
+            var lexer = new Lexer(code);
             var tokens = lexer.Tokenize();
 
             var lexemes = new List<LexemeEntry>();
-            var allErrors = new List<ParserErrorEntry>();
+            var allErrors = new List<ErrorEntry>();
 
             foreach (var token in tokens)
             {
-                //if (token.Type == TokenType.Whitespace) continue; 
-
                 int codeValue = token.Type switch
                 {
                     TokenType.Keyword => 1,
@@ -85,11 +84,15 @@ namespace YourNamespace
 
                 if (token.Type == TokenType.Error)
                 {
-                    allErrors.Add(new ParserErrorEntry(
+                    allErrors.Add(new ErrorEntry(
+                        token.Value,
+                        $"строка {token.Line}, позиция {token.Column}",
                         $"Недопустимый символ: '{token.Value}'",
-                        token.Line, token.Column));
+                        token.Line,
+                        token.Column));
                 }
             }
+
             var parser = new Parser(tokens);
             var parseResult = parser.Parse();
 
@@ -97,100 +100,83 @@ namespace YourNamespace
             {
                 foreach (var err in parseResult.Errors)
                 {
-                    allErrors.Add(new ParserErrorEntry(err.Message, err.Line, err.Column));
+                    string fragment = GetErrorFragment(code, err.Line, err.Column);
+                    allErrors.Add(new ErrorEntry(
+                        fragment,
+                        $"строка {err.Line}, позиция {err.Column}",
+                        err.Message,
+                        err.Line,
+                        err.Column));
                 }
             }
 
             TokensDataGrid.ItemsSource = lexemes;
+            ErrorsDataGrid.ItemsSource = allErrors;
+            ErrorCountTextBlock.Text = allErrors.Count.ToString();
 
             if (allErrors.Count > 0)
             {
-                ErrorsDataGrid.ItemsSource = allErrors;
-                ResultTabs.SelectedItem = ResultTabs.Items[1]; 
+                ResultTabs.SelectedItem = ResultTabs.Items[1];
             }
             else
             {
-                ErrorsDataGrid.ItemsSource = null;
-
-                if (parseResult.Success)
-                {
-                    var successEntry = new LexemeEntry(0, " Успех", "Синтаксис корректен",
-                        $"Обработано {lexemes.Count} лексем");
-                    TokensDataGrid.ItemsSource = new[] { successEntry }.Concat(lexemes).ToList();
-                }
+                var successEntry = new LexemeEntry(0, "УСПЕХ", "Синтаксис корректен",
+                    $"Обработано {lexemes.Count} лексем");
+                TokensDataGrid.ItemsSource = new[] { successEntry }.Concat(lexemes).ToList();
             }
 
             UpdateStatusBar();
         }
+
+        private string GetErrorFragment(string code, int line, int column)
+        {
+            string[] lines = code.Split('\n');
+            if (line > 0 && line <= lines.Length)
+            {
+                string lineText = lines[line - 1];
+                if (column > 0 && column <= lineText.Length)
+                {
+                    int endIndex = Math.Min(column + 10, lineText.Length);
+                    return lineText.Substring(column - 1, endIndex - column + 1).Trim();
+                }
+            }
+            return "";
+        }
+
         private void ErrorsDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ErrorsDataGrid.SelectedItem is ErrorEntry selectedError)
             {
-                var lineMatch = System.Text.RegularExpressions.Regex.Match(selectedError.Message, @"строке\s+(\d+)");
-                var colMatch = System.Text.RegularExpressions.Regex.Match(selectedError.Message, @"колонка\s+(\d+)");
-
-                if (lineMatch.Success && colMatch.Success)
+                if (CodeTabs.SelectedItem is TabItem selectedTab)
                 {
-                    if (int.TryParse(lineMatch.Groups[1].Value, out int line) &&
-                        int.TryParse(colMatch.Groups[1].Value, out int col))
+                    var textBox = FindVisualChild<TextBox>(selectedTab.Content as DependencyObject);
+                    if (textBox != null)
                     {
-                        if (CodeTabs.SelectedItem is TabItem selectedTab)
+                        try
                         {
-                            var textBox = FindVisualChild<TextBox>(selectedTab.Content as DependencyObject);
-                            if (textBox != null)
-                            {
-                                try
-                                {
-                                    int caretIndex = textBox.GetCharacterIndexFromLineIndex(line - 1) + col - 1;
+                            int lineIndex = selectedError.Line - 1;
+                            int columnIndex = selectedError.Column - 1;
 
-                                    if (caretIndex >= 0 && caretIndex <= textBox.Text.Length)
-                                    {
-                                        textBox.CaretIndex = caretIndex;
-                                        textBox.Focus();
-                                        textBox.ScrollToVerticalOffset(textBox.GetLineIndexFromCharacterIndex(caretIndex));
-                                    }
-                                }
-                                catch (Exception ex)
+                            if (lineIndex >= 0 && lineIndex < textBox.LineCount)
+                            {
+                                int caretIndex = textBox.GetCharacterIndexFromLineIndex(lineIndex) + columnIndex;
+
+                                if (caretIndex >= 0 && caretIndex <= textBox.Text.Length)
                                 {
-                                    System.Diagnostics.Debug.WriteLine($"Ошибка навигации: {ex.Message}");
+                                    textBox.CaretIndex = caretIndex;
+                                    textBox.Focus();
+                                    int fragLength = selectedError.ErrorFragment?.Length ?? 1;
+                                    textBox.Select(caretIndex, fragLength);
+                                    textBox.ScrollToVerticalOffset(lineIndex * 20);
                                 }
                             }
                         }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Ошибка навигации: {ex.Message}");
+                        }
                     }
                 }
-            }
-        }
-        public class ParserErrorEntry
-        {
-            public string Timestamp { get; set; }
-            public string Level { get; set; }
-            public string Module { get; set; }
-            public string Message { get; set; }
-            public string ErrorCode { get; set; }
-
-            public ParserErrorEntry(string message, int line, int column)
-            {
-                Timestamp = DateTime.Now.ToString("HH:mm:ss");
-                Level = "Error";
-                Module = "Parser";
-                Message = $"Строка {line}, поз. {column}: {message}";
-                ErrorCode = "SYN";
-            }
-        }
-
-        public class LexemeEntry
-        {
-            public int Code { get; set; }
-            public string TokenType { get; set; }
-            public string Value { get; set; }
-            public string Location { get; set; }
-
-            public LexemeEntry(int code, string tokenType, string value, string location)
-            {
-                Code = code;
-                TokenType = tokenType;
-                Value = value;
-                Location = location;
             }
         }
     }

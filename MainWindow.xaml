@@ -341,40 +341,61 @@
                         </DataGrid>
                     </TabItem>
                     <TabItem Header="Ошибки">
-                        <DataGrid x:Name="ErrorsDataGrid"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False"
-                                  CanUserDeleteRows="False"
-                                  CanUserResizeRows="False"
-                                  Background="#2C2C2C"
-                                  Foreground="White"
-                                  GridLinesVisibility="Horizontal"
-                                  HorizontalGridLinesBrush="#9B59B6"
-                                  VerticalGridLinesBrush="Transparent"
-                                  RowBackground="#2C2C2C"
-                                  AlternatingRowBackground="#3C3C3C"
-                                  HeadersVisibility="Column"
-                                  FontFamily="Consolas"
-                                  FontSize="12"
-                                  SelectionMode="Single"
-                                  IsReadOnly="True"
-                                   SelectionChanged="ErrorsDataGrid_SelectionChanged">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Время" Binding="{Binding Timestamp}" Width="120"/>
-                                <DataGridTextColumn Header="Уровень" Binding="{Binding Level}" Width="80"/>
-                                <DataGridTextColumn Header="Модуль" Binding="{Binding Module}" Width="100"/>
-                                <DataGridTextColumn Header="Сообщение" Binding="{Binding Message}" Width="*"/>
-                                <DataGridTextColumn Header="Код" Binding="{Binding ErrorCode}" Width="60"/>
-                            </DataGrid.Columns>
-                            <DataGrid.Resources>
-                                <Style TargetType="DataGridColumnHeader">
-                                    <Setter Property="Background" Value="#6C3483"/>
-                                    <Setter Property="Foreground" Value="White"/>
-                                    <Setter Property="FontWeight" Value="Bold"/>
-                                    <Setter Property="Padding" Value="5"/>
-                                </Style>
-                            </DataGrid.Resources>
-                        </DataGrid>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <DataGrid x:Name="ErrorsDataGrid"
+                  Grid.Row="0"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  CanUserResizeRows="False"
+                  Background="#2C2C2C"
+                  Foreground="White"
+                  GridLinesVisibility="Horizontal"
+                  HorizontalGridLinesBrush="#9B59B6"
+                  VerticalGridLinesBrush="Transparent"
+                  RowBackground="#2C2C2C"
+                  AlternatingRowBackground="#3C3C3C"
+                  HeadersVisibility="Column"
+                  FontFamily="Consolas"
+                  FontSize="12"
+                  SelectionMode="Single"
+                  IsReadOnly="True"
+                  SelectionChanged="ErrorsDataGrid_SelectionChanged">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Неверный фрагмент" Binding="{Binding ErrorFragment}" Width="200"/>
+                                    <DataGridTextColumn Header="Местоположение" Binding="{Binding Location}" Width="200"/>
+                                    <DataGridTextColumn Header="Описание" Binding="{Binding Description}" Width="*"/>
+                                </DataGrid.Columns>
+                                <DataGrid.Resources>
+                                    <Style TargetType="DataGridColumnHeader">
+                                        <Setter Property="Background" Value="#6C3483"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="Padding" Value="5"/>
+                                    </Style>
+                                </DataGrid.Resources>
+                            </DataGrid>
+
+                            <Border Grid.Row="1" Background="#3C3C3C" BorderBrush="#9B59B6" BorderThickness="0,1,0,0" Padding="10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" Text="Общее количество ошибок:" 
+                           Foreground="White" FontSize="14" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                                    <TextBlock Grid.Column="2" x:Name="ErrorCountTextBlock" 
+                           Text="0" Foreground="#E74C3C" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
                     </TabItem>
                 </TabControl>
             </GroupBox>

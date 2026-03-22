@@ -4,21 +4,23 @@ namespace YourNamespace
 {
     public class ErrorEntry
     {
-        public string Timestamp { get; set; }
-        public string Level { get; set; }      
-        public string Module { get; set; }   
-        public string Message { get; set; }   
-        public string ErrorCode { get; set; }  
+        public string ErrorFragment { get; set; }
+        public string Location { get; set; }
+        public string Description { get; set; }
 
-        public ErrorEntry(string level, string module, string message, string errorCode = "")
+        public int Line { get; set; }
+        public int Column { get; set; }
+
+        public ErrorEntry(string errorFragment, string location, string description, int line, int column)
         {
-            Timestamp = DateTime.Now.ToString("HH:mm:ss");
-            Level = level;
-            Module = module;
-            Message = message;
-            ErrorCode = errorCode;
+            ErrorFragment = errorFragment;
+            Location = location;
+            Description = description;
+            Line = line;
+            Column = column;
         }
     }
+
     public class LexemeEntry
     {
         public int Code { get; set; }

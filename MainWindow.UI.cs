@@ -278,46 +278,37 @@ namespace YourNamespace
             if (ErrorsDataGrid == null) return;
 
             ErrorsDataGrid.ItemsSource = _errorsCollection;
-            ErrorsDataGrid.LoadingRow += (s, e) =>
-            {
-                if (e.Row.Item is ErrorEntry error)
-                {
-                    string level = error.Level?.ToLowerInvariant();
-
-                    if (level == "error" || level == "ошибка")
-                        e.Row.Background = new SolidColorBrush(Color.FromRgb(80, 30, 30));
-                    else if (level == "warning" || level == "предупреждение")
-                        e.Row.Background = new SolidColorBrush(Color.FromRgb(80, 60, 20));
-                    else if (level == "info" || level == "инфо")
-                        e.Row.Background = new SolidColorBrush(Color.FromRgb(30, 50, 80));
-                }
-            };
         }
+
         public void AddError(string module, string message, string errorCode = "")
         {
             _errorsCollection.Add(new ErrorEntry(
-                LocalizationManager.GetString("ErrorLevel_Error"),
-                module,
+                errorCode,
+                $"Ошибка в {module}",
                 message,
-                errorCode));
+                1,
+                1));
             SwitchToErrorsTab();
         }
 
         public void AddWarning(string module, string message, string errorCode = "")
         {
             _errorsCollection.Add(new ErrorEntry(
-                LocalizationManager.GetString("ErrorLevel_Warning"),
-                module,
+                errorCode,
+                $"Предупреждение в {module}",
                 message,
-                errorCode));
+                1,
+                1));
         }
 
         public void AddInfo(string module, string message)
         {
             _errorsCollection.Add(new ErrorEntry(
-                LocalizationManager.GetString("ErrorLevel_Info"),
-                module,
-                message));
+                "",
+                $"Инфо в {module}",
+                message,
+                1,
+                1));
         }
 
         public void ClearErrors()
