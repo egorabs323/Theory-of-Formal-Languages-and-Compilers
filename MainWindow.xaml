@@ -353,6 +353,7 @@
                   CanUserAddRows="False"
                   CanUserDeleteRows="False"
                   CanUserResizeRows="False"
+                  CanUserSortColumns="False"
                   Background="#2C2C2C"
                   Foreground="White"
                   GridLinesVisibility="Horizontal"
