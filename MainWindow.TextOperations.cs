@@ -1,110 +1,130 @@
 ﻿using System;
+using System.Text.RegularExpressions;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Input;
+using System.Windows.Media;
+using System.Linq;
 
 namespace YourNamespace
 {
     public partial class MainWindow
     {
+        private ObservableCollection<SearchMatch> _searchResults = new ObservableCollection<SearchMatch>();
+        private void SearchWordsM_Click(object sender, RoutedEventArgs e)
+        {
+            PerformSearch(@"\b[mM][a-zA-Z]*\b", "Поиск слов на m/M");
+        }
+
+        private void SearchEthereum_Click(object sender, RoutedEventArgs e)
+        {
+            PerformSearch(@"0x[a-fA-F0-9]{40}", "Поиск Ethereum адресов");
+        }
+
+        private void SearchHTMLTags_Click(object sender, RoutedEventArgs e)
+        {
+            PerformSearch(@"<[a-zA-Z][\w-]*(\s+[a-zA-Z-]+\s*=\s*(""[^""]*""|'[^']*'|[^\s>]+))+\s*/?>",
+                         "Поиск HTML тегов");
+        }
+        private void PerformSearch(string pattern, string searchName)
+        {
+            string text = CodeInputTextBox.Text;
+            _searchResults.Clear();
+
+            try
+            {
+                var matches = Regex.Matches(text, pattern, RegexOptions.Multiline);
+
+                foreach (Match m in matches)
+                {
+                    var (line, col) = GetLineColumn(text, m.Index);
+                    _searchResults.Add(new SearchMatch(m.Value, line, col, m.Length, m.Index));
+                }
+
+                SearchResultsGrid.ItemsSource = _searchResults;
+                SearchCountText.Text = $"Найдено: {_searchResults.Count} ({searchName})";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка поиска:\n{ex.Message}", "Ошибка",
+                               MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ClearSearch_Click(object sender, RoutedEventArgs e)
+        {
+            _searchResults.Clear();
+            SearchResultsGrid.ItemsSource = null;
+            SearchCountText.Text = "Найдено: 0";
+            CodeInputTextBox.Select(0, 0);
+        }
+
+        private void SearchResultsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (SearchResultsGrid.SelectedItem is SearchMatch result && CodeInputTextBox != null)
+            {
+                CodeInputTextBox.Focus();
+                CodeInputTextBox.Select(result.StartIndex, result.Length);
+                CodeInputTextBox.SelectionBrush = new SolidColorBrush(Color.FromRgb(155, 89, 182));
+                CodeInputTextBox.SelectionOpacity = 0.6;
+
+                double lineHeight = 14;
+                var linesBefore = CodeInputTextBox.Text.Substring(0, result.StartIndex).Count(c => c == '\n');
+                CodeInputTextBox.ScrollToVerticalOffset(Math.Max(0, linesBefore * lineHeight - 100));
+            }
+        }
+
+        private (int line, int col) GetLineColumn(string text, int index)
+        {
+            int line = 1, col = 1;
+            for (int i = 0; i < index && i < text.Length; i++)
+            {
+                if (text[i] == '\n') { line++; col = 1; }
+                else { col++; }
+            }
+            return (line, col);
+        }
+
         private void Undo_Click(object sender, RoutedEventArgs e)
         {
-            if (CodeTabs.SelectedItem is TabItem tab)
-            {
-                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
-                if (richTextBox != null && richTextBox.CanUndo)
-                    richTextBox.Undo();
-            }
+            if (CodeInputTextBox != null && CodeInputTextBox.CanUndo)
+                CodeInputTextBox.Undo();
         }
 
         private void Redo_Click(object sender, RoutedEventArgs e)
         {
-            if (CodeTabs.SelectedItem is TabItem tab)
-            {
-                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
-                if (richTextBox != null && richTextBox.CanRedo)
-                    richTextBox.Redo();
-            }
+            if (CodeInputTextBox != null && CodeInputTextBox.CanRedo)
+                CodeInputTextBox.Redo();
         }
 
         private void Cut_Click(object sender, RoutedEventArgs e)
         {
-            if (CodeTabs.SelectedItem is TabItem tab)
-            {
-                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
-                if (richTextBox != null && !richTextBox.Selection.IsEmpty)
-                    richTextBox.Cut();
-            }
+            if (CodeInputTextBox != null && !string.IsNullOrEmpty(CodeInputTextBox.SelectedText))
+                CodeInputTextBox.Cut();
         }
 
         private void Copy_Click(object sender, RoutedEventArgs e)
         {
-            if (CodeTabs.SelectedItem is TabItem tab)
-            {
-                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
-                if (richTextBox != null && !richTextBox.Selection.IsEmpty)
-                    richTextBox.Copy();
-            }
+            if (CodeInputTextBox != null && !string.IsNullOrEmpty(CodeInputTextBox.SelectedText))
+                CodeInputTextBox.Copy();
         }
 
         private void Paste_Click(object sender, RoutedEventArgs e)
         {
-            if (CodeTabs.SelectedItem is TabItem tab)
-            {
-                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
-                if (richTextBox != null)
-                    richTextBox.Paste();
-            }
+            if (CodeInputTextBox != null)
+                CodeInputTextBox.Paste();
         }
 
         private void Delete_Click(object sender, RoutedEventArgs e)
         {
-            if (CodeTabs.SelectedItem is TabItem tab)
-            {
-                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
-                if (richTextBox != null && !richTextBox.Selection.IsEmpty)
-                {
-                    richTextBox.Selection.Text = string.Empty;
-                }
-            }
+            if (CodeInputTextBox != null && !string.IsNullOrEmpty(CodeInputTextBox.SelectedText))
+                CodeInputTextBox.SelectedText = string.Empty;
         }
 
         private void SelectAll_Click(object sender, RoutedEventArgs e)
         {
-            if (CodeTabs.SelectedItem is TabItem tab)
-            {
-                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
-                if (richTextBox != null)
-                    richTextBox.SelectAll();
-            }
-        }
-
-        private void IncreaseFontSize_Click(object sender, RoutedEventArgs e)
-        {
-            if (currentFontSize < 24)
-            {
-                currentFontSize++;
-                UpdateAllTabFontSizes();
-            }
-        }
-
-        private void DecreaseFontSize_Click(object sender, RoutedEventArgs e)
-        {
-            if (currentFontSize > 8)
-            {
-                currentFontSize--;
-                UpdateAllTabFontSizes();
-            }
-        }
-
-        private void FontSize_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem menuItem && menuItem.Tag is string tag && double.TryParse(tag, out double fontSize))
-            {
-                currentFontSize = fontSize;
-                UpdateAllTabFontSizes();
-            }
+            if (CodeInputTextBox != null)
+                CodeInputTextBox.SelectAll();
         }
     }
 }

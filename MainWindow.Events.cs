@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.ComponentModel;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -10,22 +11,13 @@ namespace YourNamespace
         {
             if (sender is MenuItem menuItem && menuItem.Tag is string cultureCode)
             {
-                LocalizationManager.SwitchLanguage(cultureCode);
-                UpdateUIForCurrentLanguage();
+                
             }
         }
 
         private void UserGuide_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show($"{LocalizationManager.GetString("FunctionsList")}\n" +
-                           $"{LocalizationManager.GetString("CreateOpenSave")}\n" +
-                           $"{LocalizationManager.GetString("TextOperations")}\n" +
-                           $"{LocalizationManager.GetString("SelectAll")}\n" +
-                           $"{LocalizationManager.GetString("FontSizeChange")}\n" +
-                           $"{LocalizationManager.GetString("LineNumbering")}\n" +
-                           $"{LocalizationManager.GetString("MultiDocs")}\n" +
-                           $"{LocalizationManager.GetString("AdaptiveInterface")}",
-                           LocalizationManager.GetString("UserGuideTitle"));
+            MessageBox.Show("Руководство пользователя", "Справка");
         }
 
         private void About_Click(object sender, RoutedEventArgs e)
@@ -33,7 +25,7 @@ namespace YourNamespace
             MessageBox.Show("Дисциплина -> Теория формальных языков и компиляторов \n" +
                             "Выполнил -> Студент гр.АП-326 Олейник Е.В.\n" +
                             "Проверил -> Ассистент АСУ Антонянц Е.Н.",
-                            LocalizationManager.GetString("AboutTitle"));
+                            "О программе");
         }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -61,10 +53,7 @@ namespace YourNamespace
                         }
                         e.Handled = true;
                         break;
-                    case Key.W:
-                        Close_Click(null, null);
-                        e.Handled = true;
-                        break;
+                    
                     case Key.Z:
                         Undo_Click(null, null);
                         e.Handled = true;
@@ -89,16 +78,9 @@ namespace YourNamespace
                         SelectAll_Click(null, null);
                         e.Handled = true;
                         break;
-                    case Key.Add:
-                    case Key.OemPlus:
-                        IncreaseFontSize_Click(null, null);
-                        e.Handled = true;
-                        break;
-                    case Key.Subtract:
-                    case Key.OemMinus:
-                        DecreaseFontSize_Click(null, null);
-                        e.Handled = true;
-                        break;
+
+                   
+                   
                 }
             }
             else if (e.KeyboardDevice.Modifiers == ModifierKeys.Alt && e.Key == Key.F4)
@@ -111,6 +93,14 @@ namespace YourNamespace
                 Delete_Click(null, null);
                 e.Handled = true;
             }
+        }
+
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+        }
+
+        private void Window_Drop(object sender, DragEventArgs e)
+        {
         }
     }
 }
