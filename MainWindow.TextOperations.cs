@@ -20,12 +20,17 @@ namespace YourNamespace
         {
             PerformSearch(@"0x[a-fA-F0-9]{40}", "Поиск Ethereum адресов");
         }
+        //0x742d35Cc6634C0532925a3b844Bc9e7595f8fE00 0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B 0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed
+        //0x742d35Cc6634C0532925a3b844Bc9e7595f8fE00 0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B 0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed
 
         private void SearchHTMLTags_Click(object sender, RoutedEventArgs e)
         {
-            PerformSearch(@"<[a-zA-Z][\w-]*(\s+[a-zA-Z-]+\s*=\s*(""[^""]*""|'[^']*'|[^\s>]+))+\s*/?>",
-                         "Поиск HTML тегов");
+            // <div id="main" class="abx">
+            string pattern = @"<[a-zA-Z][a-zA-Z0-9]*\s[^>]+>";
+
+            PerformSearch(pattern, "Поиск HTML тега");
         }
+
         private void PerformSearch(string pattern, string searchName)
         {
             string text = CodeInputTextBox.Text;
