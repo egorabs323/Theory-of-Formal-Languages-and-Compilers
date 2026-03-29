@@ -10,24 +10,26 @@ namespace YourNamespace
 {
     public partial class MainWindow
     {
+        private readonly FiniteAutomaton _ethereumAutomaton = FiniteAutomaton.CreateEthereumAddressAutomaton();
         private ObservableCollection<SearchMatch> _searchResults = new ObservableCollection<SearchMatch>();
         private void SearchWordsM_Click(object sender, RoutedEventArgs e)
         {
+            UpdateSearchModeInfo("Используется регулярное выражение для поиска слов, начинающихся на m/M.");
             PerformSearch(@"\b[mM][a-zA-Z]*\b", "Поиск слов на m/M");
         }
 
         private void SearchEthereum_Click(object sender, RoutedEventArgs e)
         {
-            PerformSearch(@"0x[a-fA-F0-9]{40}", "Поиск Ethereum адресов");
+            PerformAutomatonSearch("Поиск Ethereum адресов");
         }
-        //0x742d35Cc6634C0532925a3b844Bc9e7595f8fE00 0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B 0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed
-        //0x742d35Cc6634C0532925a3b844Bc9e7595f8fE00 0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B 0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed
+        //0x742d35Cc6634C0532925a3b844Bc9e7595f8fE00 
 
         private void SearchHTMLTags_Click(object sender, RoutedEventArgs e)
         {
             // <div id="main" class="abx">
             string pattern = @"<[a-zA-Z][a-zA-Z0-9]*\s[^>]+>";
 
+            UpdateSearchModeInfo("Используется регулярное выражение для поиска HTML-тегов с атрибутами.");
             PerformSearch(pattern, "Поиск HTML тега");
         }
 
@@ -56,11 +58,57 @@ namespace YourNamespace
             }
         }
 
+        private void PerformAutomatonSearch(string searchName)
+        {
+            string text = CodeInputTextBox.Text;
+            _searchResults.Clear();
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(text))
+                {
+                    SearchResultsGrid.ItemsSource = _searchResults;
+                    SearchCountText.Text = $"Найдено: 0 ({searchName}, граф автомата)";
+                    UpdateSearchModeInfo(_ethereumAutomaton.BuildGraphDescription());
+                    MessageBox.Show("Введите текст для анализа.", "Поиск Ethereum",
+                                   MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                var matches = _ethereumAutomaton.FindMatches(text);
+
+                foreach (AutomatonMatch match in matches)
+                {
+                    var (line, col) = GetLineColumn(text, match.StartIndex);
+                    _searchResults.Add(new SearchMatch(match.Value, line, col, match.Length, match.StartIndex));
+                }
+
+                SearchResultsGrid.ItemsSource = _searchResults;
+                SearchCountText.Text = $"Найдено: {_searchResults.Count} ({searchName}, граф автомата)";
+                UpdateSearchModeInfo(_ethereumAutomaton.BuildGraphDescription());
+
+                if (_searchResults.Count == 0)
+                {
+                    MessageBox.Show(
+                        "Совпадения не найдены.\n\nПример корректного адреса:\n0x742d35Cc6634C0532925a3b844Bc9e7595f8fE00",
+                        "Поиск Ethereum",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка поиска автоматом:\n{ex.Message}", "Ошибка",
+                               MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         private void ClearSearch_Click(object sender, RoutedEventArgs e)
         {
             _searchResults.Clear();
             SearchResultsGrid.ItemsSource = null;
             SearchCountText.Text = "Найдено: 0";
+            UpdateSearchModeInfo("Выберите тип поиска. Для Ethereum-адресов используется поиск по графу конечного автомата.");
             CodeInputTextBox.Select(0, 0);
         }
 
@@ -88,6 +136,14 @@ namespace YourNamespace
                 else { col++; }
             }
             return (line, col);
+        }
+
+        private void UpdateSearchModeInfo(string description)
+        {
+            if (SearchModeInfoText != null)
+            {
+                SearchModeInfoText.Text = description;
+            }
         }
 
         private void Undo_Click(object sender, RoutedEventArgs e)

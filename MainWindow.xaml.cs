@@ -30,6 +30,12 @@ namespace YourNamespace
                 CodeInputTextBox.SelectionChanged += CodeInputTextBox_SelectionChanged;
                 tabModifiedState[CodeInputTextBox] = false;
             }
+
+            if (SearchModeInfoText != null)
+            {
+                SearchModeInfoText.Text = "Для Ethereum-адресов используется поиск по графу конечного автомата.";
+            }
+
             UpdateStatusBar();
         }
 

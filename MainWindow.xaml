@@ -169,7 +169,21 @@
                           ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch"/>
 
             <GroupBox Grid.Row="2" Header="Результаты поиска" Margin="5" Style="{StaticResource GroupBoxStyle}">
-                <DataGrid x:Name="SearchResultsGrid"
+                <DockPanel LastChildFill="True">
+                    <Border DockPanel.Dock="Top"
+                            Margin="5"
+                            Padding="8"
+                            Background="#33203A"
+                            BorderBrush="#9B59B6"
+                            BorderThickness="1">
+                        <TextBlock x:Name="SearchModeInfoText"
+                                   Foreground="White"
+                                   FontFamily="Consolas"
+                                   FontSize="11"
+                                   TextWrapping="Wrap"/>
+                    </Border>
+
+                    <DataGrid x:Name="SearchResultsGrid"
           AutoGenerateColumns="False"
           CanUserAddRows="False"
           IsReadOnly="True"
@@ -198,7 +212,8 @@
                             <Setter Property="Background" Value="#3C3C3C"/>
                         </Style>
                     </DataGrid.Resources>
-                </DataGrid>
+                    </DataGrid>
+                </DockPanel>
             </GroupBox>
         </Grid>
     </DockPanel>
