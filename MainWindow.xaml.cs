@@ -6,7 +6,7 @@ using System.Windows.Controls;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Windows.Media;
-
+///
 namespace YourNamespace
 {
     public partial class MainWindow : Window

@@ -11,7 +11,7 @@ public class Lexer
     private int column;
 
     public Lexer(string input)
-    {
+    {///
         this.input = input ?? "";
         this.position = 0;
         this.line = 1;
