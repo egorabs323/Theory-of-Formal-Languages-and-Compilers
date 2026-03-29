@@ -120,9 +120,13 @@ namespace YourNamespace
             }
             else
             {
-                var successEntry = new LexemeEntry(0, "УСПЕХ", "Синтаксис корректен",
+                var successEntry = new LexemeEntry(
+                    0,
+                    "УСПЕХ",
+                    " ",
                     $"Обработано {lexemes.Count} лексем");
                 TokensDataGrid.ItemsSource = new[] { successEntry }.Concat(lexemes).ToList();
+                ResultTabs.SelectedItem = ResultTabs.Items[0];
             }
 
             UpdateStatusBar();
