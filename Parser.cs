@@ -1,204 +1,530 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using YourNamespace;
 
-public class Parser
+namespace YourNamespace
 {
-    private readonly List<Token> tokens;
-    private int position;
-    private readonly List<ParserSyntaxError> errors;
-
-    public Parser(List<Token> tokens)
+    public class Parser
     {
-        this.tokens = tokens.ToList();
-        this.position = 0;
-        this.errors = new List<ParserSyntaxError>();
-    }
-
-    public ParseResult Parse()
-    {
-        errors.Clear();
-        position = 0;
-
-        if (tokens.Count == 0)
+        private sealed class ExpectedSymbol
         {
-            errors.Add(new ParserSyntaxError("Пустой вход", 1, 1));
-            return new ParseResult { Success = false, Errors = errors };
+            public string DisplayName { get; }
+            public bool AllowLexerError { get; }
+            private readonly Func<Token, bool> matcher;
+
+            public ExpectedSymbol(Func<Token, bool> matcher, string displayName, bool allowLexerError = false)
+            {
+                this.matcher = matcher;
+                DisplayName = displayName;
+                AllowLexerError = allowLexerError;
+            }
+
+            public bool Matches(Token token)
+            {
+                return matcher(token);
+            }
         }
 
-        ExpectKeyword("final");
-        ExpectWhitespace();
-        ExpectKeyword("double");
-        ExpectWhitespace();
-        ExpectIdentifier();
-        SkipWhitespace();
-        ExpectOperator("=");
-        SkipWhitespace();
-        ExpectNumber();
-        ExpectSeparator(";");
-
-        if (position < tokens.Count)
+        private enum RecoveryActionKind
         {
-            var extra = tokens[position];
-            errors.Add(new ParserSyntaxError(
-                $"Лишний токен '{extra.Value}' после завершения объявления",
-                extra.Line, extra.Column));
+            InsertMissing,
+            ReportLexerError
         }
 
-        return new ParseResult { Success = errors.Count == 0, Errors = errors };
-    }
+        private sealed class RecoveryAction
+        {
+            public RecoveryActionKind Kind { get; }
+            public int TokenIndex { get; }
+            public int ExpectedFrom { get; }
+            public int ExpectedToExclusive { get; }
 
-    private void ExpectKeyword(string expected)
-    {
-        var token = Current();
-        if (token.Type == TokenType.Keyword && token.Value == expected)
-        {
-            Advance();
-        }
-        else
-        {
-            errors.Add(new ParserSyntaxError(
-                $"Ожидается '{expected}', найдено '{token.Value}'",
-                token.Line, token.Column));
-            Advance();
-        }
-    }
-
-    private void ExpectWhitespace()
-    {
-        var token = Current();
-        if (token.Type == TokenType.Whitespace)
-        {
-            Advance();
-        }
-        else
-        {
-            errors.Add(new ParserSyntaxError(
-                $"Ожидается пробел после '{tokens[position > 0 ? position - 1 : 0].Value}'",
-                token.Line, token.Column));
-        }
-    }
-
-    private void SkipWhitespace()
-    {
-        while (position < tokens.Count && Current().Type == TokenType.Whitespace)
-        {
-            Advance();
-        }
-    }
-
-    private void ExpectIdentifier()
-    {
-        var token = Current();
-        if (token.Type == TokenType.Identifier)
-        {
-            Advance();
-        }
-        else
-        {
-            errors.Add(new ParserSyntaxError(
-                $"Ожидается имя константы (идентификатор), найдено '{token.Value}'",
-                token.Line, token.Column));
-            Advance();
-        }
-    }
-
-    private void ExpectOperator(string expected)
-    {
-        var token = Current();
-        if (token.Type == TokenType.Operator && token.Value == expected)
-        {
-            Advance();
-        }
-        else
-        {
-            errors.Add(new ParserSyntaxError(
-                $"Ожидается оператор '{expected}', найдено '{token.Value}'",
-                token.Line, token.Column));
-            Advance();
-        }
-    }
-
-    private void ExpectNumber()
-    {
-        var token = Current();
-
-        if (token.Type == TokenType.Operator && (token.Value == "+" || token.Value == "-"))
-        {
-            Advance();
-            token = Current();
+            public RecoveryAction(RecoveryActionKind kind, int tokenIndex, int expectedFrom, int expectedToExclusive)
+            {
+                Kind = kind;
+                TokenIndex = tokenIndex;
+                ExpectedFrom = expectedFrom;
+                ExpectedToExclusive = expectedToExclusive;
+            }
         }
 
-        if (token.Type == TokenType.NumberLiteral)
+        private sealed class RecoveryPlan
         {
-            if (!token.Value.Contains("."))
+            public int RecoveryCount { get; }
+            public int DeletedTokenCount { get; }
+            public int InsertedSymbolCount { get; }
+            public List<RecoveryAction> Actions { get; }
+            public ExpectedSymbol[] Pattern { get; }
+
+            public RecoveryPlan(
+                int recoveryCount,
+                int deletedTokenCount,
+                int insertedSymbolCount,
+                List<RecoveryAction> actions,
+                ExpectedSymbol[] pattern)
+            {
+                RecoveryCount = recoveryCount;
+                DeletedTokenCount = deletedTokenCount;
+                InsertedSymbolCount = insertedSymbolCount;
+                Actions = actions ?? new List<RecoveryAction>();
+                Pattern = pattern;
+            }
+        }
+
+        private static readonly ExpectedSymbol[] StatementPattern =
+        {
+            Keyword("final", "'final'"),
+            Keyword("double", "'double'"),
+            new ExpectedSymbol(token => token.Type == TokenType.Identifier, "идентификатор"),
+            Operator("=", "'='"),
+            new ExpectedSymbol(token => token.Type == TokenType.NumberLiteral, "вещественное число", allowLexerError: true),
+            Separator(";", "';'")
+        };
+
+        private static readonly ExpectedSymbol[] SignedPositiveStatementPattern =
+        {
+            Keyword("final", "'final'"),
+            Keyword("double", "'double'"),
+            new ExpectedSymbol(token => token.Type == TokenType.Identifier, "идентификатор"),
+            Operator("=", "'='"),
+            Operator("+", "'+'"),
+            new ExpectedSymbol(token => token.Type == TokenType.NumberLiteral, "вещественное число", allowLexerError: true),
+            Separator(";", "';'")
+        };
+
+        private static readonly ExpectedSymbol[] SignedNegativeStatementPattern =
+        {
+            Keyword("final", "'final'"),
+            Keyword("double", "'double'"),
+            new ExpectedSymbol(token => token.Type == TokenType.Identifier, "идентификатор"),
+            Operator("=", "'='"),
+            Operator("-", "'-'"),
+            new ExpectedSymbol(token => token.Type == TokenType.NumberLiteral, "вещественное число", allowLexerError: true),
+            Separator(";", "';'")
+        };
+
+        private static readonly ExpectedSymbol[][] StatementPatterns =
+        {
+            StatementPattern,
+            SignedPositiveStatementPattern,
+            SignedNegativeStatementPattern
+        };
+
+        private const string EmptyInputMessage = "Пустой входной поток";
+        private const string WhitespaceOnlyInputMessage = "Пустой входной поток (только пробелы)";
+
+        private readonly List<Token> sourceTokens;
+        private List<Token> syntaxTokens;
+        private int position;
+        private List<ParserSyntaxError> errors;
+
+        public Parser(List<Token> tokens)
+        {
+            sourceTokens = tokens?.ToList() ?? new List<Token>();
+            syntaxTokens = new List<Token>();
+            errors = new List<ParserSyntaxError>();
+        }
+
+        public ParseResult Parse()
+        {
+            errors = new List<ParserSyntaxError>();
+            syntaxTokens = sourceTokens
+                .Where(token => token.Type != TokenType.Whitespace)
+                .ToList();
+            position = 0;
+
+            if (sourceTokens.Count == 0)
+            {
+                errors.Add(new ParserSyntaxError("", 1, 1, EmptyInputMessage));
+                return BuildResult();
+            }
+
+            if (syntaxTokens.Count == 0)
+            {
+                errors.Add(new ParserSyntaxError("", 1, 1, WhitespaceOnlyInputMessage));
+                return BuildResult();
+            }
+
+            ParseProgram();
+            return BuildResult();
+        }
+
+        private ParseResult BuildResult()
+        {
+            return new ParseResult
+            {
+                Success = errors.Count == 0,
+                Errors = errors
+            };
+        }
+
+        private void ParseProgram()
+        {
+            while (position < syntaxTokens.Count)
+            {
+                ParseStatement();
+            }
+        }
+
+        private void ParseStatement()
+        {
+            if (position >= syntaxTokens.Count)
+            {
+                return;
+            }
+
+            var statementStartLine = CurrentLine();
+            var statementTokens = new List<Token>();
+
+            while (position < syntaxTokens.Count)
+            {
+                var current = CurrentToken();
+                if (current == null)
+                {
+                    break;
+                }
+
+                if (current.Line > statementStartLine && statementTokens.Count > 0)
+                {
+                    break;
+                }
+
+                statementTokens.Add(current);
+                position++;
+
+                if (current.Type == TokenType.Separator && current.Value == ";")
+                {
+                    break;
+                }
+            }
+
+            if (statementTokens.Count > 0)
+            {
+                ValidateStatement(statementTokens);
+            }
+        }
+
+        private void ValidateStatement(List<Token> tokens)
+        {
+            if (tokens == null || tokens.Count == 0)
+            {
+                return;
+            }
+
+            RecoveryPlan bestPlan = null;
+
+            foreach (var pattern in StatementPatterns)
+            {
+                var memo = new RecoveryPlan[tokens.Count + 1, pattern.Length + 1];
+                var calculated = new bool[tokens.Count + 1, pattern.Length + 1];
+                var plan = BuildRecoveryPlan(tokens, 0, 0, pattern, memo, calculated);
+                bestPlan = ChooseBetter(bestPlan, plan);
+            }
+
+            if (bestPlan == null)
+            {
+                return;
+            }
+
+            foreach (var action in bestPlan.Actions)
+            {
+                if (action.Kind == RecoveryActionKind.InsertMissing)
+                {
+                    AddMissingSequenceError(tokens, bestPlan.Pattern, action.ExpectedFrom, action.ExpectedToExclusive, action.TokenIndex);
+                    continue;
+                }
+
+                if (action.Kind == RecoveryActionKind.ReportLexerError
+                    && action.TokenIndex >= 0
+                    && action.TokenIndex < tokens.Count)
+                {
+                    var token = tokens[action.TokenIndex];
+                    errors.Add(new ParserSyntaxError(
+                        token.Value,
+                        token.Line,
+                        token.Column,
+                        ConvertLexerErrorToMessage(token)));
+                }
+            }
+        }
+
+        private RecoveryPlan BuildRecoveryPlan(
+            List<Token> tokens,
+            int tokenIndex,
+            int expectedIndex,
+            ExpectedSymbol[] pattern,
+            RecoveryPlan[,] memo,
+            bool[,] calculated)
+        {
+            if (calculated[tokenIndex, expectedIndex])
+            {
+                return memo[tokenIndex, expectedIndex];
+            }
+
+            RecoveryPlan bestPlan;
+
+            if (tokenIndex >= tokens.Count)
+            {
+                if (expectedIndex >= pattern.Length)
+                {
+                    bestPlan = new RecoveryPlan(0, 0, 0, new List<RecoveryAction>(), pattern);
+                }
+                else
+                {
+                    bestPlan = new RecoveryPlan(
+                        1,
+                        0,
+                        pattern.Length - expectedIndex,
+                        new List<RecoveryAction>
+                        {
+                            new RecoveryAction(RecoveryActionKind.InsertMissing, tokenIndex, expectedIndex, pattern.Length)
+                        },
+                        pattern);
+                }
+            }
+            else if (expectedIndex >= pattern.Length)
+            {
+                bestPlan = new RecoveryPlan(0, tokens.Count - tokenIndex, 0, new List<RecoveryAction>(), pattern);
+            }
+            else
+            {
+                bestPlan = null;
+                var currentToken = tokens[tokenIndex];
+
+                if (IsMatch(currentToken, expectedIndex, pattern))
+                {
+                    var matchPlan = BuildRecoveryPlan(tokens, tokenIndex + 1, expectedIndex + 1, pattern, memo, calculated);
+                    RecoveryAction matchAction = null;
+
+                    if (pattern[expectedIndex].AllowLexerError && currentToken.Type == TokenType.Error)
+                    {
+                        matchAction = new RecoveryAction(
+                            RecoveryActionKind.ReportLexerError,
+                            tokenIndex,
+                            expectedIndex,
+                            expectedIndex + 1);
+                    }
+
+                    var candidate = PrependAction(matchPlan, matchAction, 0, 0, 0, pattern);
+                    bestPlan = ChooseBetter(bestPlan, candidate);
+                }
+
+                var deletePlan = BuildRecoveryPlan(tokens, tokenIndex + 1, expectedIndex, pattern, memo, calculated);
+                bestPlan = ChooseBetter(bestPlan, PrependAction(deletePlan, null, 0, 1, 0, pattern));
+
+                for (var syncIndex = expectedIndex + 1; syncIndex < pattern.Length; syncIndex++)
+                {
+                    if (!IsMatch(currentToken, syncIndex, pattern))
+                    {
+                        continue;
+                    }
+
+                    var syncPlan = BuildRecoveryPlan(tokens, tokenIndex, syncIndex, pattern, memo, calculated);
+                    var insertAction = new RecoveryAction(
+                        RecoveryActionKind.InsertMissing,
+                        tokenIndex,
+                        expectedIndex,
+                        syncIndex);
+
+                    bestPlan = ChooseBetter(
+                        bestPlan,
+                        PrependAction(syncPlan, insertAction, 1, 0, syncIndex - expectedIndex, pattern));
+                }
+            }
+
+            calculated[tokenIndex, expectedIndex] = true;
+            memo[tokenIndex, expectedIndex] = bestPlan;
+            return bestPlan;
+        }
+
+        private static RecoveryPlan PrependAction(
+            RecoveryPlan basePlan,
+            RecoveryAction action,
+            int recoveryDelta,
+            int deletedDelta,
+            int insertedDelta,
+            ExpectedSymbol[] pattern)
+        {
+            var actions = new List<RecoveryAction>();
+            if (action != null)
+            {
+                actions.Add(action);
+            }
+
+            if (basePlan != null && basePlan.Actions.Count > 0)
+            {
+                actions.AddRange(basePlan.Actions);
+            }
+
+            return new RecoveryPlan(
+                (basePlan != null ? basePlan.RecoveryCount : 0) + recoveryDelta,
+                (basePlan != null ? basePlan.DeletedTokenCount : 0) + deletedDelta,
+                (basePlan != null ? basePlan.InsertedSymbolCount : 0) + insertedDelta,
+                actions,
+                basePlan?.Pattern ?? pattern);
+        }
+
+        private static RecoveryPlan ChooseBetter(RecoveryPlan current, RecoveryPlan candidate)
+        {
+            if (candidate == null)
+            {
+                return current;
+            }
+
+            if (current == null)
+            {
+                return candidate;
+            }
+
+            if (candidate.DeletedTokenCount != current.DeletedTokenCount)
+            {
+                return candidate.DeletedTokenCount < current.DeletedTokenCount ? candidate : current;
+            }
+
+            if (candidate.RecoveryCount != current.RecoveryCount)
+            {
+                return candidate.RecoveryCount < current.RecoveryCount ? candidate : current;
+            }
+
+            if (candidate.InsertedSymbolCount != current.InsertedSymbolCount)
+            {
+                return candidate.InsertedSymbolCount < current.InsertedSymbolCount ? candidate : current;
+            }
+
+            return candidate.Actions.Count < current.Actions.Count ? candidate : current;
+        }
+
+        private static bool IsMatch(Token token, int expectedIndex, ExpectedSymbol[] pattern)
+        {
+            var expected = pattern[expectedIndex];
+            if (expected.Matches(token))
+            {
+                return true;
+            }
+
+            return expected.AllowLexerError && token.Type == TokenType.Error;
+        }
+
+        private void AddMissingSequenceError(
+            List<Token> tokens,
+            ExpectedSymbol[] pattern,
+            int expectedFrom,
+            int expectedToExclusive,
+            int tokenIndex)
+        {
+            if (expectedFrom >= expectedToExclusive)
+            {
+                return;
+            }
+
+            int line;
+            int column;
+            string fragment;
+
+            if (tokenIndex >= 0 && tokenIndex < tokens.Count)
+            {
+                line = tokens[tokenIndex].Line;
+                column = tokens[tokenIndex].Column;
+                fragment = tokens[tokenIndex].Value;
+            }
+            else
+            {
+                var lastToken = tokens[^1];
+                line = lastToken.Line;
+                column = lastToken.Column + Math.Max(lastToken.Length, 1);
+                fragment = "EOF";
+            }
+
+            for (var i = expectedFrom; i < expectedToExclusive; i++)
             {
                 errors.Add(new ParserSyntaxError(
-                    "Ожидается вещественное число (с точкой), найдено целое число",
-                    token.Line, token.Column));
+                    fragment,
+                    line,
+                    column,
+                    "Ожидалось " + pattern[i].DisplayName));
             }
-            Advance();
         }
-        else
+
+        private static string ConvertLexerErrorToMessage(Token token)
         {
-            errors.Add(new ParserSyntaxError(
-                $"Ожидается числовой литерал, найдено '{token.Value}'",
-                token.Line, token.Column));
-            Advance();
+            if (token == null)
+            {
+                return "Неверный формат числа";
+            }
+
+            if (token.Value == ".")
+            {
+                return "Ожидалась цифра после десятичной точки";
+            }
+
+            if (token.Value == "e" || token.Value == "E")
+            {
+                return "Ожидалась цифра после экспоненты";
+            }
+
+            return "Неверный формат числа";
+        }
+
+        private Token CurrentToken()
+        {
+            if (position < syntaxTokens.Count)
+            {
+                return syntaxTokens[position];
+            }
+
+            return null;
+        }
+
+        private int CurrentLine()
+        {
+            if (position < syntaxTokens.Count)
+            {
+                return syntaxTokens[position].Line;
+            }
+
+            return 1;
+        }
+
+        private static ExpectedSymbol Keyword(string value, string displayName)
+        {
+            return new ExpectedSymbol(
+                token => token.Type == TokenType.Keyword && token.Value == value,
+                displayName);
+        }
+
+        private static ExpectedSymbol Operator(string value, string displayName)
+        {
+            return new ExpectedSymbol(
+                token => token.Type == TokenType.Operator && token.Value == value,
+                displayName);
+        }
+
+        private static ExpectedSymbol Separator(string value, string displayName)
+        {
+            return new ExpectedSymbol(
+                token => token.Type == TokenType.Separator && token.Value == value,
+                displayName);
         }
     }
 
-    private void ExpectSeparator(string expected)
+    public class ParseResult
     {
-        var token = Current();
-        if (token.Type == TokenType.Separator && token.Value == expected)
-        {
-            Advance();
-        }
-        else
-        {
-            errors.Add(new ParserSyntaxError(
-                $"Ожидается '{expected}', найдено '{token.Value}'",
-                token.Line, token.Column));
-            Advance();
-        }
+        public bool Success { get; set; }
+        public List<ParserSyntaxError> Errors { get; set; } = new();
     }
 
-    private Token Current()
+    public class ParserSyntaxError
     {
-        return position < tokens.Count ? tokens[position] :
-               new Token
-               {
-                   Type = TokenType.Error,
-                   Value = "EOF",
-                   Line = tokens.LastOrDefault()?.Line ?? 1,
-                   Column = tokens.LastOrDefault()?.Column ?? 1
-               };
-    }
+        public string Message { get; set; }
+        public int Line { get; set; }
+        public int Column { get; set; }
+        public string Fragment { get; set; }
 
-    private void Advance()
-    {
-        if (position < tokens.Count) position++;
-    }/////
-}
-
-public class ParseResult
-{
-    public bool Success { get; set; }
-    public List<ParserSyntaxError> Errors { get; set; } = new();
-}
-
-public class ParserSyntaxError
-{
-    public string Message { get; set; }
-    public int Line { get; set; }
-    public int Column { get; set; }
-
-    public ParserSyntaxError(string message, int line, int column)
-    {
-        Message = message;
-        Line = line;
-        Column = column;
+        public ParserSyntaxError(string fragment, int line, int column, string message)
+        {
+            Fragment = fragment;
+            Line = line;
+            Column = column;
+            Message = message;
+        }
     }
 }
