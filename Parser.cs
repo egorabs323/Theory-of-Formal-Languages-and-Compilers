@@ -180,7 +180,7 @@ public class Parser
     private void Advance()
     {
         if (position < tokens.Count) position++;
-    }
+    }/////
 }
 
 public class ParseResult
