@@ -135,7 +135,7 @@
 
 ### 6)Диаграмма состояний.
 
-![скрин](img/3.png) 
+<img width="563" height="640" alt="image" src="https://github.com/user-attachments/assets/0acd6e7a-101d-4de3-b0fd-960401a20874" />
 
 Рисунок 2 - Диаграмма состояний
 
