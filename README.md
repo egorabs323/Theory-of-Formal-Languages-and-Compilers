@@ -191,7 +191,7 @@
 
 ### 4) Разработка грамматики.
 
-<img width="572" height="525" alt="image" src="https://github.com/user-attachments/assets/e79de467-f23b-4c95-8518-b0565aa5da6d" />
+<img width="544" height="572" alt="image" src="https://github.com/user-attachments/assets/a135daf2-0a72-4c9a-9808-b0dedba703b0" />
 
 Рисунок 2 - Граматика согласно варианта
 
@@ -205,7 +205,7 @@
 
 Далее представлен граф автоматной граматики 
 
-<img width="353" height="682" alt="image" src="https://github.com/user-attachments/assets/c6f11af9-11e9-4135-9b10-c616fe61b7d3" />
+<img width="416" height="669" alt="image" src="https://github.com/user-attachments/assets/e5961fc7-0fdd-4394-ab14-9be79cf6372d" />
 
 Рисунок 3 - Гграф автоматной граматики 
 
