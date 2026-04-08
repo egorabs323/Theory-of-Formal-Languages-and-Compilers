@@ -100,7 +100,9 @@ namespace YourNamespace
             {
                 foreach (var err in parseResult.Errors)
                 {
-                    string fragment = GetErrorFragment(code, err.Line, err.Column);
+                    string fragment = string.IsNullOrWhiteSpace(err.Fragment)
+                        ? GetErrorFragment(code, err.Line, err.Column)
+                        : err.Fragment;
                     allErrors.Add(new ErrorEntry(
                         fragment,
                         $"строка {err.Line}, позиция {err.Column}",

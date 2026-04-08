@@ -28,6 +28,7 @@ namespace YourNamespace
         private enum RecoveryActionKind
         {
             InsertMissing,
+            DeleteUnexpected,
             ReportLexerError
         }
 
@@ -229,7 +230,19 @@ namespace YourNamespace
             {
                 if (action.Kind == RecoveryActionKind.InsertMissing)
                 {
-                    AddMissingSequenceError(tokens, bestPlan.Pattern, action.ExpectedFrom, action.ExpectedToExclusive, action.TokenIndex);
+                    var fragmentInfo = GetFragmentInfoForInsertion(tokens, bestPlan.Actions, action);
+                    AddMissingSequenceError(
+                        bestPlan.Pattern,
+                        action.ExpectedFrom,
+                        action.ExpectedToExclusive,
+                        fragmentInfo.Fragment,
+                        fragmentInfo.Line,
+                        fragmentInfo.Column);
+                    continue;
+                }
+
+                if (action.Kind == RecoveryActionKind.DeleteUnexpected)
+                {
                     continue;
                 }
 
@@ -309,7 +322,12 @@ namespace YourNamespace
                 }
 
                 var deletePlan = BuildRecoveryPlan(tokens, tokenIndex + 1, expectedIndex, pattern, memo, calculated);
-                bestPlan = ChooseBetter(bestPlan, PrependAction(deletePlan, null, 0, 1, 0, pattern));
+                var deleteAction = new RecoveryAction(
+                    RecoveryActionKind.DeleteUnexpected,
+                    tokenIndex,
+                    expectedIndex,
+                    expectedIndex);
+                bestPlan = ChooseBetter(bestPlan, PrependAction(deletePlan, deleteAction, 0, 1, 0, pattern));
 
                 for (var syncIndex = expectedIndex + 1; syncIndex < pattern.Length; syncIndex++)
                 {
@@ -404,34 +422,88 @@ namespace YourNamespace
             return expected.AllowLexerError && token.Type == TokenType.Error;
         }
 
-        private void AddMissingSequenceError(
+        private (string Fragment, int Line, int Column) GetFragmentInfoForInsertion(
             List<Token> tokens,
+            List<RecoveryAction> actions,
+            RecoveryAction insertAction)
+        {
+            if (tokens == null || tokens.Count == 0)
+            {
+                return ("", 1, 1);
+            }
+
+            var insertActionIndex = actions.IndexOf(insertAction);
+            if (insertActionIndex > 0)
+            {
+                var deletedTokenIndexes = new List<int>();
+
+                for (var i = insertActionIndex - 1; i >= 0; i--)
+                {
+                    var action = actions[i];
+                    if (action.Kind != RecoveryActionKind.DeleteUnexpected)
+                    {
+                        break;
+                    }
+
+                    deletedTokenIndexes.Add(action.TokenIndex);
+                }
+
+                if (deletedTokenIndexes.Count > 0)
+                {
+                    deletedTokenIndexes.Sort();
+
+                    var startIndex = deletedTokenIndexes[0];
+                    var endIndex = deletedTokenIndexes[^1];
+                    var startToken = tokens[startIndex];
+
+                    return (
+                        BuildFragment(tokens, startIndex, endIndex),
+                        startToken.Line,
+                        startToken.Column);
+                }
+            }
+
+            if (insertAction.TokenIndex >= 0 && insertAction.TokenIndex < tokens.Count)
+            {
+                var token = tokens[insertAction.TokenIndex];
+                return (token.Value, token.Line, token.Column);
+            }
+
+            var lastToken = tokens[^1];
+            return ("EOF", lastToken.Line, lastToken.Column + Math.Max(lastToken.Length, 1));
+        }
+
+        private static string BuildFragment(List<Token> tokens, int startIndex, int endIndex)
+        {
+            if (tokens == null
+                || tokens.Count == 0
+                || startIndex < 0
+                || endIndex < startIndex
+                || endIndex >= tokens.Count)
+            {
+                return "";
+            }
+
+            var parts = new List<string>();
+            for (var i = startIndex; i <= endIndex; i++)
+            {
+                parts.Add(tokens[i].Value);
+            }
+
+            return string.Join(" ", parts);
+        }
+
+        private void AddMissingSequenceError(
             ExpectedSymbol[] pattern,
             int expectedFrom,
             int expectedToExclusive,
-            int tokenIndex)
+            string fragment,
+            int line,
+            int column)
         {
             if (expectedFrom >= expectedToExclusive)
             {
                 return;
-            }
-
-            int line;
-            int column;
-            string fragment;
-
-            if (tokenIndex >= 0 && tokenIndex < tokens.Count)
-            {
-                line = tokens[tokenIndex].Line;
-                column = tokens[tokenIndex].Column;
-                fragment = tokens[tokenIndex].Value;
-            }
-            else
-            {
-                var lastToken = tokens[^1];
-                line = lastToken.Line;
-                column = lastToken.Column + Math.Max(lastToken.Length, 1);
-                fragment = "EOF";
             }
 
             for (var i = expectedFrom; i < expectedToExclusive; i++)
