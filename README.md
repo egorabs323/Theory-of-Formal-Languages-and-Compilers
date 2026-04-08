@@ -191,7 +191,7 @@
 
 ### 4) Разработка грамматики.
 
-<img width="544" height="572" alt="image" src="https://github.com/user-attachments/assets/a135daf2-0a72-4c9a-9808-b0dedba703b0" />
+<img width="502" height="515" alt="image" src="https://github.com/user-attachments/assets/05858f43-6bb5-487e-8a0a-1fda5c964efc" />
 
 Рисунок 2 - Граматика согласно варианта
 
