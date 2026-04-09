@@ -142,6 +142,6 @@
 
 Граф автомата и тестовыми примерами поиска подстрок с указанием местоположения.
 
-<img width="172" height="658" alt="image" src="https://github.com/user-attachments/assets/5e22e2ca-73e6-4b38-9182-d4217e45b793" />
+<img width="80" height="652" alt="image" src="https://github.com/user-attachments/assets/1b870d5c-c66b-46ad-b796-d1d3c198b62b" />
 
 Рисунок 4 - Дополнительное задания
