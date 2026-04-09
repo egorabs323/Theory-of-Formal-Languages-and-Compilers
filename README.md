@@ -206,7 +206,7 @@
 
 Далее представлен граф автоматной граматики 
 
-<img width="281" height="531" alt="image" src="https://github.com/user-attachments/assets/a52dc516-3af6-40d7-939c-a010495b457b" />
+<img width="259" height="546" alt="image" src="https://github.com/user-attachments/assets/f0c6b153-b6fc-46d4-94d6-4d89458e5304" />
 
 Рисунок 3 - Граф автоматной граматики 
 
