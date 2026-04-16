@@ -113,6 +113,8 @@ namespace YourNamespace
         private const string EmptyInputMessage = "Пустой входной поток";
         private const string WhitespaceOnlyInputMessage = "Пустой входной поток (только пробелы)";
 
+        private const string InvalidFragmentMessage = "Неверный фрагмент";
+
         private readonly List<Token> sourceTokens;
         private List<Token> syntaxTokens;
         private int position;
@@ -173,18 +175,12 @@ namespace YourNamespace
                 return;
             }
 
-            var statementStartLine = CurrentLine();
             var statementTokens = new List<Token>();
 
             while (position < syntaxTokens.Count)
             {
                 var current = CurrentToken();
                 if (current == null)
-                {
-                    break;
-                }
-
-                if (current.Line > statementStartLine && statementTokens.Count > 0)
                 {
                     break;
                 }
@@ -226,8 +222,10 @@ namespace YourNamespace
                 return;
             }
 
-            foreach (var action in bestPlan.Actions)
+            for (var actionIndex = 0; actionIndex < bestPlan.Actions.Count; actionIndex++)
             {
+                var action = bestPlan.Actions[actionIndex];
+
                 if (action.Kind == RecoveryActionKind.InsertMissing)
                 {
                     var fragmentInfo = GetFragmentInfoForInsertion(tokens, bestPlan.Actions, action);
@@ -243,6 +241,22 @@ namespace YourNamespace
 
                 if (action.Kind == RecoveryActionKind.DeleteUnexpected)
                 {
+                    var deletedTokenIndexes = new List<int> { action.TokenIndex };
+
+                    while (actionIndex + 1 < bestPlan.Actions.Count
+                        && bestPlan.Actions[actionIndex + 1].Kind == RecoveryActionKind.DeleteUnexpected)
+                    {
+                        actionIndex++;
+                        deletedTokenIndexes.Add(bestPlan.Actions[actionIndex].TokenIndex);
+                    }
+
+                    if (actionIndex + 1 < bestPlan.Actions.Count
+                        && bestPlan.Actions[actionIndex + 1].Kind == RecoveryActionKind.InsertMissing)
+                    {
+                        continue;
+                    }
+
+                    AddInvalidFragmentError(tokens, deletedTokenIndexes);
                     continue;
                 }
 
@@ -258,6 +272,35 @@ namespace YourNamespace
                         ConvertLexerErrorToMessage(token)));
                 }
             }
+        }
+
+        private void AddInvalidFragmentError(List<Token> tokens, List<int> deletedTokenIndexes)
+        {
+            if (tokens == null
+                || deletedTokenIndexes == null
+                || deletedTokenIndexes.Count == 0)
+            {
+                return;
+            }
+
+            deletedTokenIndexes.Sort();
+
+            var startIndex = deletedTokenIndexes[0];
+            var endIndex = deletedTokenIndexes[^1];
+
+            if (startIndex < 0
+                || endIndex >= tokens.Count
+                || endIndex < startIndex)
+            {
+                return;
+            }
+
+            var startToken = tokens[startIndex];
+            errors.Add(new ParserSyntaxError(
+                BuildFragment(tokens, startIndex, endIndex),
+                startToken.Line,
+                startToken.Column,
+                InvalidFragmentMessage));
         }
 
         private RecoveryPlan BuildRecoveryPlan(
@@ -296,7 +339,17 @@ namespace YourNamespace
             }
             else if (expectedIndex >= pattern.Length)
             {
-                bestPlan = new RecoveryPlan(0, tokens.Count - tokenIndex, 0, new List<RecoveryAction>(), pattern);
+                var deleteActions = new List<RecoveryAction>();
+                for (var i = tokenIndex; i < tokens.Count; i++)
+                {
+                    deleteActions.Add(new RecoveryAction(
+                        RecoveryActionKind.DeleteUnexpected,
+                        i,
+                        expectedIndex,
+                        expectedIndex));
+                }
+
+                bestPlan = new RecoveryPlan(0, tokens.Count - tokenIndex, 0, deleteActions, pattern);
             }
             else
             {
