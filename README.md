@@ -233,7 +233,7 @@
 
 Рисунок 6 - Неуспешный пример №1
 
-<img width="1175" height="348" alt="image" src="https://github.com/user-attachments/assets/116f22df-7d91-4e0a-9061-8e72d78bdf43" />
+<img width="1172" height="286" alt="image" src="https://github.com/user-attachments/assets/48610fd4-24c1-42cc-b0c7-200b0bf201bc" />
 
 Рисунок 7 - Неуспешный пример №2
 
