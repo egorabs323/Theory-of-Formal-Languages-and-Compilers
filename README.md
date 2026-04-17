@@ -191,12 +191,13 @@
 
 ### 4) Разработка грамматики.
 
-<img width="608" height="540" alt="image" src="https://github.com/user-attachments/assets/7330b77b-ac52-4c9d-831a-eb6f3d23e711" />
+<img width="686" height="567" alt="image" src="https://github.com/user-attachments/assets/14b03422-1082-433a-a46b-20c5f8866152" />
 
 Рисунок 2 - Граматика согласно варианта
 
 ### 5) Классификация грамматики (по Хомскому).
 
+Формула автоматной граматики: Z -> aA | b | ε 
 Данная граматика являктся автоматной, это самый ограниченный класс грамматик по Хомскому.  
 Языки, порождаемые такими грамматиками, называются регулярными языками.
 
@@ -205,7 +206,7 @@
 
 Далее представлен граф автоматной граматики 
 
-<img width="281" height="531" alt="image" src="https://github.com/user-attachments/assets/a52dc516-3af6-40d7-939c-a010495b457b" />
+<img width="259" height="546" alt="image" src="https://github.com/user-attachments/assets/f0c6b153-b6fc-46d4-94d6-4d89458e5304" />
 
 Рисунок 3 - Граф автоматной граматики 
 
@@ -377,5 +378,7 @@
 ### 4) Дополнительное задание.
 
 Граф автомата и тестовыми примерами поиска подстрок с указанием местоположения.
+
+<img width="80" height="652" alt="image" src="https://github.com/user-attachments/assets/ee6c302c-ae50-4f42-8663-6282f02d7df0" />
 
 Рисунок 4 - Дополнительное задания
