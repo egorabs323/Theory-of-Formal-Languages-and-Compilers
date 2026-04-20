@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace YourNamespace
 {
@@ -70,14 +71,24 @@ namespace YourNamespace
                 Pattern = pattern;
             }
         }
+     
 
-        private static readonly ExpectedSymbol[] StatementPattern =
+private static bool IsFloatNumber(Token token)
+    {
+        if (token.Type != TokenType.NumberLiteral)
+            return false;
+
+        // Только формат: 123.45 или 123.45e+10
+        return Regex.IsMatch(token.Value, @"^[+-]?\d+\.\d+([eE][+-]?\d+)?$");
+    }
+
+    private static readonly ExpectedSymbol[] StatementPattern =
         {
             Keyword("final", "'final'"),
             Keyword("double", "'double'"),
             new ExpectedSymbol(token => token.Type == TokenType.Identifier, "идентификатор"),
             Operator("=", "'='"),
-            new ExpectedSymbol(token => token.Type == TokenType.NumberLiteral, "вещественное число", allowLexerError: true),
+            new ExpectedSymbol(token => IsFloatNumber(token), "вещественное число", allowLexerError: true),
             Separator(";", "';'")
         };
 
@@ -88,7 +99,7 @@ namespace YourNamespace
             new ExpectedSymbol(token => token.Type == TokenType.Identifier, "идентификатор"),
             Operator("=", "'='"),
             Operator("+", "'+'"),
-            new ExpectedSymbol(token => token.Type == TokenType.NumberLiteral, "вещественное число", allowLexerError: true),
+           new ExpectedSymbol(token => IsFloatNumber(token), "вещественное число", allowLexerError: true),
             Separator(";", "';'")
         };
 
@@ -99,7 +110,7 @@ namespace YourNamespace
             new ExpectedSymbol(token => token.Type == TokenType.Identifier, "идентификатор"),
             Operator("=", "'='"),
             Operator("-", "'-'"),
-            new ExpectedSymbol(token => token.Type == TokenType.NumberLiteral, "вещественное число", allowLexerError: true),
+           new ExpectedSymbol(token => IsFloatNumber(token), "вещественное число", allowLexerError: true),
             Separator(";", "';'")
         };
 
