@@ -9,12 +9,17 @@
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
     <UseSharedCompilation>false</UseSharedCompilation>
     <PublishReadyToRun>false</PublishReadyToRun>
-  <PublishTrimmed>false</PublishTrimmed>
-  <UseAppHost>true</UseAppHost>
+    <PublishTrimmed>false</PublishTrimmed>
+    <UseAppHost>true</UseAppHost>
+    <DefaultItemExcludes>$(DefaultItemExcludes);artifacts\**;artifacts/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
-  
+    <Compile Remove="artifacts\**\*.cs" />
+    <EmbeddedResource Remove="artifacts\**\*" />
+    <None Remove="artifacts\**\*" />
+    <Page Remove="artifacts\**\*.xaml" />
+    <ApplicationDefinition Remove="artifacts\**\*.xaml" />
   </ItemGroup>
 
 </Project>

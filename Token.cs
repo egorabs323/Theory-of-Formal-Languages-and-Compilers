@@ -1,5 +1,4 @@
 ﻿using System;
-//////
 namespace YourNamespace
 {
     public enum TokenType
@@ -16,7 +15,7 @@ namespace YourNamespace
     public class Token
     {
         public TokenType Type { get; set; }
-        public string Value { get; set; }
+        public string Value { get; set; } = "";
         public int Line { get; set; }
         public int Column { get; set; }
         public int Length { get; set; }

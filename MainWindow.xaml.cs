@@ -81,20 +81,12 @@ namespace YourNamespace
 
                 string location = $"строка {token.Line}, {token.Column}-{token.Column + token.Length - 1}";
                 lexemes.Add(new LexemeEntry(codeValue, typeString, token.Value, location));
-
-                if (token.Type == TokenType.Error)
-                {
-                    allErrors.Add(new ErrorEntry(
-                        token.Value,
-                        $"строка {token.Line}, позиция {token.Column}",
-                        $"Недопустимый символ: '{token.Value}'",
-                        token.Line,
-                        token.Column));
-                }
             }
 
             var parser = new Parser(tokens);
             var parseResult = parser.Parse();
+            var semanticAnalyzer = new SemanticAnalyzer();
+            var semanticResult = semanticAnalyzer.Analyze(parseResult.Ast);
 
             if (parseResult.Errors != null)
             {
@@ -112,9 +104,26 @@ namespace YourNamespace
                 }
             }
 
+            foreach (var err in semanticResult.Errors)
+            {
+                string fragment = string.IsNullOrWhiteSpace(err.Fragment)
+                    ? GetErrorFragment(code, err.Line, err.Column)
+                    : err.Fragment;
+                allErrors.Add(new ErrorEntry(
+                    fragment,
+                    $"строка {err.Line}, позиция {err.Column}",
+                    err.Message,
+                    err.Line,
+                    err.Column));
+            }
+
             TokensDataGrid.ItemsSource = lexemes;
             ErrorsDataGrid.ItemsSource = allErrors;
             ErrorCountTextBlock.Text = allErrors.Count.ToString();
+            if (AstOutputTextBox != null)
+            {
+                AstOutputTextBox.Text = AstTextFormatter.Format(semanticResult.ValidAst);
+            }
 
             if (allErrors.Count > 0)
             {

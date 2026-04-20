@@ -222,7 +222,7 @@
                 </Button>
                 <Button Style="{StaticResource ToolbarButtonStyle}"
         Click="Analyze_Click"
-        ToolTip="Запустить лексический анализ">
+        ToolTip="Запустить синтаксический и семантический анализ">
                     <TextBlock Text="&#xE768;" FontFamily="Segoe MDL2 Assets" TextAlignment="Center"/>
                 </Button>
             </ToolBar>
@@ -397,6 +397,21 @@
                                 </Grid>
                             </Border>
                         </Grid>
+                    </TabItem>
+                    <TabItem Header="AST">
+                        <TextBox x:Name="AstOutputTextBox"
+                                 IsReadOnly="True"
+                                 TextWrapping="NoWrap"
+                                 AcceptsReturn="True"
+                                 AcceptsTab="True"
+                                 VerticalScrollBarVisibility="Auto"
+                                 HorizontalScrollBarVisibility="Auto"
+                                 Background="#2C2C2C"
+                                 Foreground="White"
+                                 FontFamily="Consolas"
+                                 FontSize="12"
+                                 BorderThickness="0"
+                                 Padding="10"/>
                     </TabItem>
                 </TabControl>
             </GroupBox>

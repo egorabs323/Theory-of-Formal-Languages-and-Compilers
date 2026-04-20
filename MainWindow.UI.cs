@@ -257,7 +257,7 @@ namespace YourNamespace
                 {
                     case 0: tab.Header = LocalizationManager.GetString("ResultTab_Output"); break;
                     case 1: tab.Header = LocalizationManager.GetString("ResultTab_Errors"); break;
-                    case 2: tab.Header = LocalizationManager.GetString("ResultTab_Stats"); break;
+                    case 2: tab.Header = "AST"; break;
                 }
                 i++;
             }

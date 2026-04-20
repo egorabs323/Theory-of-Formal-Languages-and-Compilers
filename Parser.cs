@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -71,24 +73,18 @@ namespace YourNamespace
                 Pattern = pattern;
             }
         }
-     
 
-private static bool IsFloatNumber(Token token)
-    {
-        if (token.Type != TokenType.NumberLiteral)
-            return false;
+        private const string EmptyInputMessage = "Пустой входной поток";
+        private const string WhitespaceOnlyInputMessage = "Пустой входной поток (только пробелы)";
+        private const string InvalidFragmentMessage = "Неверный фрагмент";
 
-        // Только формат: 123.45 или 123.45e+10
-        return Regex.IsMatch(token.Value, @"^[+-]?\d+\.\d+([eE][+-]?\d+)?$");
-    }
-
-    private static readonly ExpectedSymbol[] StatementPattern =
+        private static readonly ExpectedSymbol[] StatementPattern =
         {
             Keyword("final", "'final'"),
             Keyword("double", "'double'"),
             new ExpectedSymbol(token => token.Type == TokenType.Identifier, "идентификатор"),
             Operator("=", "'='"),
-            new ExpectedSymbol(token => IsFloatNumber(token), "вещественное число", allowLexerError: true),
+            new ExpectedSymbol(IsFloatNumber, "вещественное число", allowLexerError: true),
             Separator(";", "';'")
         };
 
@@ -99,7 +95,7 @@ private static bool IsFloatNumber(Token token)
             new ExpectedSymbol(token => token.Type == TokenType.Identifier, "идентификатор"),
             Operator("=", "'='"),
             Operator("+", "'+'"),
-           new ExpectedSymbol(token => IsFloatNumber(token), "вещественное число", allowLexerError: true),
+            new ExpectedSymbol(IsFloatNumber, "вещественное число", allowLexerError: true),
             Separator(";", "';'")
         };
 
@@ -110,7 +106,7 @@ private static bool IsFloatNumber(Token token)
             new ExpectedSymbol(token => token.Type == TokenType.Identifier, "идентификатор"),
             Operator("=", "'='"),
             Operator("-", "'-'"),
-           new ExpectedSymbol(token => IsFloatNumber(token), "вещественное число", allowLexerError: true),
+            new ExpectedSymbol(IsFloatNumber, "вещественное число", allowLexerError: true),
             Separator(";", "';'")
         };
 
@@ -121,21 +117,14 @@ private static bool IsFloatNumber(Token token)
             SignedNegativeStatementPattern
         };
 
-        private const string EmptyInputMessage = "Пустой входной поток";
-        private const string WhitespaceOnlyInputMessage = "Пустой входной поток (только пробелы)";
-
-        private const string InvalidFragmentMessage = "Неверный фрагмент";
-
         private readonly List<Token> sourceTokens;
-        private List<Token> syntaxTokens;
+        private List<Token> syntaxTokens = new();
+        private List<ParserSyntaxError> errors = new();
         private int position;
-        private List<ParserSyntaxError> errors;
 
         public Parser(List<Token> tokens)
         {
             sourceTokens = tokens?.ToList() ?? new List<Token>();
-            syntaxTokens = new List<Token>();
-            errors = new List<ParserSyntaxError>();
         }
 
         public ParseResult Parse()
@@ -149,37 +138,39 @@ private static bool IsFloatNumber(Token token)
             if (sourceTokens.Count == 0)
             {
                 errors.Add(new ParserSyntaxError("", 1, 1, EmptyInputMessage));
-                return BuildResult();
+                return BuildResult(new ProgramNode(Array.Empty<FinalDoubleDeclarationNode>()));
             }
 
             if (syntaxTokens.Count == 0)
             {
                 errors.Add(new ParserSyntaxError("", 1, 1, WhitespaceOnlyInputMessage));
-                return BuildResult();
+                return BuildResult(new ProgramNode(Array.Empty<FinalDoubleDeclarationNode>()));
             }
 
-            ParseProgram();
-            return BuildResult();
+            var declarations = new List<FinalDoubleDeclarationNode>();
+            ParseProgram(declarations);
+            return BuildResult(new ProgramNode(declarations));
         }
 
-        private ParseResult BuildResult()
+        private ParseResult BuildResult(ProgramNode program)
         {
             return new ParseResult
             {
                 Success = errors.Count == 0,
-                Errors = errors
+                Errors = errors,
+                Ast = program
             };
         }
 
-        private void ParseProgram()
+        private void ParseProgram(List<FinalDoubleDeclarationNode> declarations)
         {
             while (position < syntaxTokens.Count)
             {
-                ParseStatement();
+                ParseStatement(declarations);
             }
         }
 
-        private void ParseStatement()
+        private void ParseStatement(List<FinalDoubleDeclarationNode> declarations)
         {
             if (position >= syntaxTokens.Count)
             {
@@ -207,18 +198,18 @@ private static bool IsFloatNumber(Token token)
 
             if (statementTokens.Count > 0)
             {
-                ValidateStatement(statementTokens);
+                ValidateStatement(statementTokens, declarations);
             }
         }
 
-        private void ValidateStatement(List<Token> tokens)
+        private void ValidateStatement(List<Token> tokens, List<FinalDoubleDeclarationNode> declarations)
         {
             if (tokens == null || tokens.Count == 0)
             {
                 return;
             }
 
-            RecoveryPlan bestPlan = null;
+            RecoveryPlan? bestPlan = null;
 
             foreach (var pattern in StatementPatterns)
             {
@@ -230,6 +221,17 @@ private static bool IsFloatNumber(Token token)
 
             if (bestPlan == null)
             {
+                return;
+            }
+
+            if (bestPlan.Actions.Count == 0)
+            {
+                var declaration = BuildDeclarationNode(tokens);
+                if (declaration != null)
+                {
+                    declarations.Add(declaration);
+                }
+
                 return;
             }
 
@@ -283,6 +285,44 @@ private static bool IsFloatNumber(Token token)
                         ConvertLexerErrorToMessage(token)));
                 }
             }
+        }
+
+        private FinalDoubleDeclarationNode? BuildDeclarationNode(List<Token> tokens)
+        {
+            if (tokens.Count != 6 && tokens.Count != 7)
+            {
+                return null;
+            }
+
+            var finalToken = tokens[0];
+            var typeToken = tokens[1];
+            var identifierToken = tokens[2];
+
+            ExpressionNode valueNode;
+
+            if (tokens.Count == 6)
+            {
+                valueNode = new NumberLiteralNode(tokens[4].Line, tokens[4].Column, tokens[4].Value);
+            }
+            else
+            {
+                var signToken = tokens[4];
+                var numberToken = tokens[5];
+                valueNode = new UnaryExpressionNode(
+                    signToken.Line,
+                    signToken.Column,
+                    signToken.Value,
+                    new NumberLiteralNode(numberToken.Line, numberToken.Column, numberToken.Value));
+            }
+
+            return new FinalDoubleDeclarationNode(
+                finalToken.Line,
+                finalToken.Column,
+                identifierToken.Value,
+                identifierToken.Line,
+                identifierToken.Column,
+                new TypeNode(typeToken.Line, typeToken.Column, typeToken.Value),
+                valueNode);
         }
 
         private void AddInvalidFragmentError(List<Token> tokens, List<int> deletedTokenIndexes)
@@ -364,13 +404,13 @@ private static bool IsFloatNumber(Token token)
             }
             else
             {
-                bestPlan = null;
+                bestPlan = null!;
                 var currentToken = tokens[tokenIndex];
 
                 if (IsMatch(currentToken, expectedIndex, pattern))
                 {
                     var matchPlan = BuildRecoveryPlan(tokens, tokenIndex + 1, expectedIndex + 1, pattern, memo, calculated);
-                    RecoveryAction matchAction = null;
+                    RecoveryAction? matchAction = null;
 
                     if (pattern[expectedIndex].AllowLexerError && currentToken.Type == TokenType.Error)
                     {
@@ -382,7 +422,7 @@ private static bool IsFloatNumber(Token token)
                     }
 
                     var candidate = PrependAction(matchPlan, matchAction, 0, 0, 0, pattern);
-                    bestPlan = ChooseBetter(bestPlan, candidate);
+                    bestPlan = ChooseBetter(bestPlan, candidate)!;
                 }
 
                 var deletePlan = BuildRecoveryPlan(tokens, tokenIndex + 1, expectedIndex, pattern, memo, calculated);
@@ -391,7 +431,7 @@ private static bool IsFloatNumber(Token token)
                     tokenIndex,
                     expectedIndex,
                     expectedIndex);
-                bestPlan = ChooseBetter(bestPlan, PrependAction(deletePlan, deleteAction, 0, 1, 0, pattern));
+                bestPlan = ChooseBetter(bestPlan, PrependAction(deletePlan, deleteAction, 0, 1, 0, pattern))!;
 
                 for (var syncIndex = expectedIndex + 1; syncIndex < pattern.Length; syncIndex++)
                 {
@@ -409,7 +449,7 @@ private static bool IsFloatNumber(Token token)
 
                     bestPlan = ChooseBetter(
                         bestPlan,
-                        PrependAction(syncPlan, insertAction, 1, 0, syncIndex - expectedIndex, pattern));
+                        PrependAction(syncPlan, insertAction, 1, 0, syncIndex - expectedIndex, pattern))!;
                 }
             }
 
@@ -419,8 +459,8 @@ private static bool IsFloatNumber(Token token)
         }
 
         private static RecoveryPlan PrependAction(
-            RecoveryPlan basePlan,
-            RecoveryAction action,
+            RecoveryPlan? basePlan,
+            RecoveryAction? action,
             int recoveryDelta,
             int deletedDelta,
             int insertedDelta,
@@ -438,14 +478,14 @@ private static bool IsFloatNumber(Token token)
             }
 
             return new RecoveryPlan(
-                (basePlan != null ? basePlan.RecoveryCount : 0) + recoveryDelta,
-                (basePlan != null ? basePlan.DeletedTokenCount : 0) + deletedDelta,
-                (basePlan != null ? basePlan.InsertedSymbolCount : 0) + insertedDelta,
+                (basePlan?.RecoveryCount ?? 0) + recoveryDelta,
+                (basePlan?.DeletedTokenCount ?? 0) + deletedDelta,
+                (basePlan?.InsertedSymbolCount ?? 0) + insertedDelta,
                 actions,
                 basePlan?.Pattern ?? pattern);
         }
 
-        private static RecoveryPlan ChooseBetter(RecoveryPlan current, RecoveryPlan candidate)
+        private static RecoveryPlan? ChooseBetter(RecoveryPlan? current, RecoveryPlan? candidate)
         {
             if (candidate == null)
             {
@@ -580,13 +620,18 @@ private static bool IsFloatNumber(Token token)
             }
         }
 
-        private static string ConvertLexerErrorToMessage(Token token)
+        private static bool IsFloatNumber(Token token)
         {
-            if (token == null)
+            if (token.Type != TokenType.NumberLiteral)
             {
-                return "Неверный формат числа";
+                return false;
             }
 
+            return Regex.IsMatch(token.Value, @"^[+-]?\d+\.\d+([eE][+-]?\d+)?$");
+        }
+
+        private static string ConvertLexerErrorToMessage(Token token)
+        {
             if (token.Value == ".")
             {
                 return "Ожидалась цифра после десятичной точки";
@@ -600,7 +645,7 @@ private static bool IsFloatNumber(Token token)
             return "Неверный формат числа";
         }
 
-        private Token CurrentToken()
+        private Token? CurrentToken()
         {
             if (position < syntaxTokens.Count)
             {
@@ -608,16 +653,6 @@ private static bool IsFloatNumber(Token token)
             }
 
             return null;
-        }
-
-        private int CurrentLine()
-        {
-            if (position < syntaxTokens.Count)
-            {
-                return syntaxTokens[position].Line;
-            }
-
-            return 1;
         }
 
         private static ExpectedSymbol Keyword(string value, string displayName)
@@ -645,6 +680,7 @@ private static bool IsFloatNumber(Token token)
     public class ParseResult
     {
         public bool Success { get; set; }
+        public ProgramNode Ast { get; set; } = new ProgramNode(Array.Empty<FinalDoubleDeclarationNode>());
         public List<ParserSyntaxError> Errors { get; set; } = new();
     }
 

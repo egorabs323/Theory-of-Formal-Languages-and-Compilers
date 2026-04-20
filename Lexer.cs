@@ -108,8 +108,6 @@ public class Lexer
         int start = position;
 
         bool hasDigits = false;
-        bool hasDot = false;
-        bool hasExponent = false;
         while (position < input.Length && char.IsDigit(input[position]))
         {
             position++;
@@ -120,7 +118,6 @@ public class Lexer
         {
             position++;
             column++;
-            hasDot = true;
 
             while (position < input.Length && char.IsDigit(input[position]))
             {
@@ -134,7 +131,6 @@ public class Lexer
         {
             position++;
             column++;
-            hasExponent = true;
 
             if (position < input.Length && (input[position] == '+' || input[position] == '-'))
             {
