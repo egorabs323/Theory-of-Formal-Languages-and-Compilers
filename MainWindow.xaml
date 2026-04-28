@@ -135,6 +135,8 @@
                 <MenuItem Header="Русский" Tag="ru-RU" Click="Language_Click" Background="#6C3483" Foreground="White"/>
                 <MenuItem Header="English" Tag="en-US" Click="Language_Click" Background="#6C3483" Foreground="White"/>
             </MenuItem>
+
+            <MenuItem Header="Пуск" Click="Analyze_Click" Background="#4A235A" Foreground="White"/>
         </Menu>
 
         <ToolBarTray DockPanel.Dock="Top" Background="#3C3C3C">
@@ -222,7 +224,7 @@
                 </Button>
                 <Button Style="{StaticResource ToolbarButtonStyle}"
         Click="Analyze_Click"
-        ToolTip="Запустить лексический анализ">
+        ToolTip="Запустить анализ">
                     <TextBlock Text="&#xE768;" FontFamily="Segoe MDL2 Assets" TextAlignment="Center"/>
                 </Button>
             </ToolBar>
@@ -390,7 +392,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <TextBlock Grid.Column="0" Text="Общее количество ошибок:" 
+                                    <TextBlock Grid.Column="0" x:Name="ErrorCountLabelTextBlock" Text="Общее количество ошибок:" 
                            Foreground="White" FontSize="14" VerticalAlignment="Center" Margin="0,0,20,0"/>
                                     <TextBlock Grid.Column="2" x:Name="ErrorCountTextBlock" 
                            Text="0" Foreground="#E74C3C" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>

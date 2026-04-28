@@ -71,24 +71,22 @@ namespace YourNamespace
                 Pattern = pattern;
             }
         }
-     
 
-private static bool IsFloatNumber(Token token)
-    {
-        if (token.Type != TokenType.NumberLiteral)
-            return false;
+        private static bool IsFloatNumber(Token token)
+        {
+            if (token.Type != TokenType.NumberLiteral)
+                return false;
 
-        // Только формат: 123.45 или 123.45e+10
-        return Regex.IsMatch(token.Value, @"^[+-]?\d+\.\d+([eE][+-]?\d+)?$");
-    }
+            return Regex.IsMatch(token.Value, @"^[+-]?\d+\.\d+([eE][+-]?\d+)?$");
+        }
 
-    private static readonly ExpectedSymbol[] StatementPattern =
+        private static readonly ExpectedSymbol[] StatementPattern =
         {
             Keyword("final", "'final'"),
             Keyword("double", "'double'"),
-            new ExpectedSymbol(token => token.Type == TokenType.Identifier, "идентификатор"),
+            new ExpectedSymbol(token => token.Type == TokenType.Identifier, "Parser_ExpectedIdentifier"),
             Operator("=", "'='"),
-            new ExpectedSymbol(token => IsFloatNumber(token), "вещественное число", allowLexerError: true),
+            new ExpectedSymbol(token => IsFloatNumber(token), "Parser_ExpectedFloatNumber", allowLexerError: true),
             Separator(";", "';'")
         };
 
@@ -96,10 +94,10 @@ private static bool IsFloatNumber(Token token)
         {
             Keyword("final", "'final'"),
             Keyword("double", "'double'"),
-            new ExpectedSymbol(token => token.Type == TokenType.Identifier, "идентификатор"),
+            new ExpectedSymbol(token => token.Type == TokenType.Identifier, "Parser_ExpectedIdentifier"),
             Operator("=", "'='"),
             Operator("+", "'+'"),
-           new ExpectedSymbol(token => IsFloatNumber(token), "вещественное число", allowLexerError: true),
+            new ExpectedSymbol(token => IsFloatNumber(token), "Parser_ExpectedFloatNumber", allowLexerError: true),
             Separator(";", "';'")
         };
 
@@ -107,10 +105,10 @@ private static bool IsFloatNumber(Token token)
         {
             Keyword("final", "'final'"),
             Keyword("double", "'double'"),
-            new ExpectedSymbol(token => token.Type == TokenType.Identifier, "идентификатор"),
+            new ExpectedSymbol(token => token.Type == TokenType.Identifier, "Parser_ExpectedIdentifier"),
             Operator("=", "'='"),
             Operator("-", "'-'"),
-           new ExpectedSymbol(token => IsFloatNumber(token), "вещественное число", allowLexerError: true),
+            new ExpectedSymbol(token => IsFloatNumber(token), "Parser_ExpectedFloatNumber", allowLexerError: true),
             Separator(";", "';'")
         };
 
@@ -121,10 +119,9 @@ private static bool IsFloatNumber(Token token)
             SignedNegativeStatementPattern
         };
 
-        private const string EmptyInputMessage = "Пустой входной поток";
-        private const string WhitespaceOnlyInputMessage = "Пустой входной поток (только пробелы)";
-
-        private const string InvalidFragmentMessage = "Неверный фрагмент";
+        private const string EmptyInputMessageKey = "Parser_EmptyInput";
+        private const string WhitespaceOnlyInputMessageKey = "Parser_WhitespaceOnlyInput";
+        private const string InvalidFragmentMessageKey = "Parser_InvalidFragment";
 
         private readonly List<Token> sourceTokens;
         private List<Token> syntaxTokens;
@@ -148,13 +145,13 @@ private static bool IsFloatNumber(Token token)
 
             if (sourceTokens.Count == 0)
             {
-                errors.Add(new ParserSyntaxError("", 1, 1, EmptyInputMessage));
+                errors.Add(new ParserSyntaxError("", 1, 1, LocalizationManager.GetString(EmptyInputMessageKey)));
                 return BuildResult();
             }
 
             if (syntaxTokens.Count == 0)
             {
-                errors.Add(new ParserSyntaxError("", 1, 1, WhitespaceOnlyInputMessage));
+                errors.Add(new ParserSyntaxError("", 1, 1, LocalizationManager.GetString(WhitespaceOnlyInputMessageKey)));
                 return BuildResult();
             }
 
@@ -311,7 +308,7 @@ private static bool IsFloatNumber(Token token)
                 BuildFragment(tokens, startIndex, endIndex),
                 startToken.Line,
                 startToken.Column,
-                InvalidFragmentMessage));
+                LocalizationManager.GetString(InvalidFragmentMessageKey)));
         }
 
         private RecoveryPlan BuildRecoveryPlan(
@@ -576,7 +573,8 @@ private static bool IsFloatNumber(Token token)
                     fragment,
                     line,
                     column,
-                    "Ожидалось " + pattern[i].DisplayName));
+                    LocalizationManager.GetString("Parser_ExpectedPrefix") + " "
+                    + LocalizationManager.GetString(pattern[i].DisplayName)));
             }
         }
 
@@ -584,20 +582,20 @@ private static bool IsFloatNumber(Token token)
         {
             if (token == null)
             {
-                return "Неверный формат числа";
+                return LocalizationManager.GetString("Parser_InvalidNumberFormat");
             }
 
             if (token.Value == ".")
             {
-                return "Ожидалась цифра после десятичной точки";
+                return LocalizationManager.GetString("Parser_ExpectedDigitAfterDecimal");
             }
 
             if (token.Value == "e" || token.Value == "E")
             {
-                return "Ожидалась цифра после экспоненты";
+                return LocalizationManager.GetString("Parser_ExpectedDigitAfterExponent");
             }
 
-            return "Неверный формат числа";
+            return LocalizationManager.GetString("Parser_InvalidNumberFormat");
         }
 
         private Token CurrentToken()

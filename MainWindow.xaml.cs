@@ -46,7 +46,7 @@ namespace YourNamespace
 
         private void Analyze_Click(object sender, RoutedEventArgs e)
         {
-            string code = CodeInputTextBox.Text;
+            string code = GetActiveCodeText();
             var lexer = new Lexer(code);
             var tokens = lexer.Tokenize();
 
@@ -69,25 +69,25 @@ namespace YourNamespace
 
                 string typeString = token.Type switch
                 {
-                    TokenType.Keyword => "keyword",
-                    TokenType.Identifier => "identifier",
-                    TokenType.NumberLiteral => "number",
-                    TokenType.Operator => "operator",
-                    TokenType.Separator => "separator",
-                    TokenType.Whitespace => "whitespace",
-                    TokenType.Error => "error",
-                    _ => "unknown"
+                    TokenType.Keyword => LocalizationManager.GetString("TokenType_Keyword"),
+                    TokenType.Identifier => LocalizationManager.GetString("TokenType_Identifier"),
+                    TokenType.NumberLiteral => LocalizationManager.GetString("TokenType_Number"),
+                    TokenType.Operator => LocalizationManager.GetString("TokenType_Operator"),
+                    TokenType.Separator => LocalizationManager.GetString("TokenType_Separator"),
+                    TokenType.Whitespace => LocalizationManager.GetString("TokenType_Whitespace"),
+                    TokenType.Error => LocalizationManager.GetString("TokenType_Error"),
+                    _ => LocalizationManager.GetString("TokenType_Unknown")
                 };
 
-                string location = $"строка {token.Line}, {token.Column}-{token.Column + token.Length - 1}";
+                string location = FormatRangeLocation(token.Line, token.Column, token.Column + token.Length - 1);
                 lexemes.Add(new LexemeEntry(codeValue, typeString, token.Value, location));
 
                 if (token.Type == TokenType.Error)
                 {
                     allErrors.Add(new ErrorEntry(
                         token.Value,
-                        $"строка {token.Line}, позиция {token.Column}",
-                        $"Недопустимый символ: '{token.Value}'",
+                        FormatPositionLocation(token.Line, token.Column),
+                        string.Format(LocalizationManager.GetString("Lexer_InvalidCharacter"), token.Value),
                         token.Line,
                         token.Column));
                 }
@@ -105,7 +105,7 @@ namespace YourNamespace
                         : err.Fragment;
                     allErrors.Add(new ErrorEntry(
                         fragment,
-                        $"строка {err.Line}, позиция {err.Column}",
+                        FormatPositionLocation(err.Line, err.Column),
                         err.Message,
                         err.Line,
                         err.Column));
@@ -124,14 +124,38 @@ namespace YourNamespace
             {
                 var successEntry = new LexemeEntry(
                     0,
-                    "УСПЕХ",
+                    LocalizationManager.GetString("AnalysisSuccess"),
                     " ",
-                    $"Обработано {lexemes.Count} лексем");
+                    string.Format(LocalizationManager.GetString("AnalysisProcessedLexemes"), lexemes.Count));
                 TokensDataGrid.ItemsSource = new[] { successEntry }.Concat(lexemes).ToList();
                 ResultTabs.SelectedItem = ResultTabs.Items[0];
             }
 
             UpdateStatusBar();
+        }
+
+        private string GetActiveCodeText()
+        {
+            if (CodeTabs.SelectedItem is TabItem selectedTab)
+            {
+                var textBox = FindVisualChild<TextBox>(selectedTab.Content as DependencyObject);
+                if (textBox != null)
+                {
+                    return textBox.Text;
+                }
+            }
+
+            return CodeInputTextBox?.Text ?? string.Empty;
+        }
+
+        private string FormatRangeLocation(int line, int startColumn, int endColumn)
+        {
+            return $"{LocalizationManager.GetString("LocationLine")} {line}, {startColumn}-{endColumn}";
+        }
+
+        private string FormatPositionLocation(int line, int column)
+        {
+            return $"{LocalizationManager.GetString("LocationLine")} {line}, {LocalizationManager.GetString("LocationPosition")} {column}";
         }
 
         private string GetErrorFragment(string code, int line, int column)

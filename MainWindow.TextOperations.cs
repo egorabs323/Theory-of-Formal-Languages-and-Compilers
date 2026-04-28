@@ -1,82 +1,89 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Input;
 
 namespace YourNamespace
 {
     public partial class MainWindow
     {
+        private TextBox GetActiveTextBox()
+        {
+            if (CodeTabs.SelectedItem is not TabItem tab)
+            {
+                return null;
+            }
+
+            return FindVisualChild<TextBox>(tab.Content as DependencyObject);
+        }
+
         private void Undo_Click(object sender, RoutedEventArgs e)
         {
-            if (CodeTabs.SelectedItem is TabItem tab)
+            var textBox = GetActiveTextBox();
+            if (textBox != null && textBox.CanUndo)
             {
-                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
-                if (richTextBox != null && richTextBox.CanUndo)
-                    richTextBox.Undo();
+                textBox.Focus();
+                textBox.Undo();
             }
         }
 
         private void Redo_Click(object sender, RoutedEventArgs e)
         {
-            if (CodeTabs.SelectedItem is TabItem tab)
+            var textBox = GetActiveTextBox();
+            if (textBox != null && textBox.CanRedo)
             {
-                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
-                if (richTextBox != null && richTextBox.CanRedo)
-                    richTextBox.Redo();
+                textBox.Focus();
+                textBox.Redo();
             }
         }
 
         private void Cut_Click(object sender, RoutedEventArgs e)
         {
-            if (CodeTabs.SelectedItem is TabItem tab)
+            var textBox = GetActiveTextBox();
+            if (textBox != null && textBox.SelectionLength > 0)
             {
-                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
-                if (richTextBox != null && !richTextBox.Selection.IsEmpty)
-                    richTextBox.Cut();
+                textBox.Focus();
+                textBox.Cut();
             }
         }
 
         private void Copy_Click(object sender, RoutedEventArgs e)
         {
-            if (CodeTabs.SelectedItem is TabItem tab)
+            var textBox = GetActiveTextBox();
+            if (textBox != null && textBox.SelectionLength > 0)
             {
-                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
-                if (richTextBox != null && !richTextBox.Selection.IsEmpty)
-                    richTextBox.Copy();
+                textBox.Focus();
+                textBox.Copy();
             }
         }
 
         private void Paste_Click(object sender, RoutedEventArgs e)
         {
-            if (CodeTabs.SelectedItem is TabItem tab)
+            var textBox = GetActiveTextBox();
+            if (textBox != null)
             {
-                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
-                if (richTextBox != null)
-                    richTextBox.Paste();
+                textBox.Focus();
+                textBox.Paste();
             }
         }
 
         private void Delete_Click(object sender, RoutedEventArgs e)
         {
-            if (CodeTabs.SelectedItem is TabItem tab)
+            var textBox = GetActiveTextBox();
+            if (textBox != null && textBox.SelectionLength > 0)
             {
-                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
-                if (richTextBox != null && !richTextBox.Selection.IsEmpty)
-                {
-                    richTextBox.Selection.Text = string.Empty;
-                }
+                textBox.Focus();
+                textBox.SelectedText = string.Empty;
             }
         }
 
         private void SelectAll_Click(object sender, RoutedEventArgs e)
         {
-            if (CodeTabs.SelectedItem is TabItem tab)
+            var textBox = GetActiveTextBox();
+            if (textBox != null)
             {
-                var richTextBox = FindVisualChild<RichTextBox>(tab.Content as DependencyObject);
-                if (richTextBox != null)
-                    richTextBox.SelectAll();
+                textBox.Focus();
+                textBox.SelectAll();
             }
         }
 

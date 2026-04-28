@@ -93,13 +93,7 @@ namespace YourNamespace
 
                 if (selectedTab != null)
                 {
-                    var textBox = FindVisualChild<TextBox>(selectedTab.Content as DependencyObject);
-                    if (textBox != null)
-                    {
-                        textBox.Text = File.ReadAllText(openFileDialog.FileName);
-                        selectedTab.Header = Path.GetFileName(openFileDialog.FileName);
-                        selectedTab.Tag = openFileDialog.FileName;
-                    }
+                    LoadFileIntoTab(selectedTab, openFileDialog.FileName);
                 }
             }
         }
@@ -133,15 +127,30 @@ namespace YourNamespace
 
             if (selectedTab != null)
             {
-                var textBox = FindVisualChild<TextBox>(selectedTab.Content as DependencyObject);
-                if (textBox != null)
-                {
-                    textBox.Text = File.ReadAllText(filePath);
-                    selectedTab.Header = Path.GetFileName(filePath);
-                    selectedTab.Tag = filePath;
-                    MarkAsSaved(textBox);
-                }
+                LoadFileIntoTab(selectedTab, filePath);
             }
+        }
+
+        private void LoadFileIntoTab(TabItem tab, string filePath)
+        {
+            var textBox = FindVisualChild<TextBox>(tab.Content as DependencyObject);
+            if (textBox == null)
+            {
+                return;
+            }
+
+            var wasUndoEnabled = textBox.IsUndoEnabled;
+            textBox.IsUndoEnabled = false;
+            textBox.Text = File.ReadAllText(filePath);
+            textBox.IsUndoEnabled = wasUndoEnabled;
+            textBox.CaretIndex = 0;
+            textBox.Focus();
+
+            tab.Header = Path.GetFileName(filePath);
+            tab.Tag = filePath;
+
+            MarkAsSaved(textBox);
+            UpdateStatusBar();
         }
 
         private void Save_Click(object sender, RoutedEventArgs e)
@@ -198,7 +207,7 @@ namespace YourNamespace
                 
                     {
                     MessageBoxResult result = MessageBox.Show(
-                        $"{LocalizationManager.GetString("UnsavedChangesTab")} '{tab.Header}'. {LocalizationManager.GetString("SaveBeforeExit")}",
+                        string.Format(LocalizationManager.GetString("UnsavedChangesPromptExit"), tab.Header),
                         LocalizationManager.GetString("ConfirmationExit"),
                         MessageBoxButton.YesNoCancel,
                         MessageBoxImage.Question);
@@ -229,8 +238,8 @@ namespace YourNamespace
             }
 
             var result = MessageBox.Show(
-                LocalizationManager.GetString("Выйти?"),
-                LocalizationManager.GetString("Подтверждение"),
+                LocalizationManager.GetString("ExitQuestion"),
+                LocalizationManager.GetString("ConfirmationExit"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
 
@@ -246,8 +255,8 @@ namespace YourNamespace
                 return;
 
             var result = MessageBox.Show(
-                LocalizationManager.GetString("В"),
-                LocalizationManager.GetString("Подтверждение"),
+                LocalizationManager.GetString("ExitQuestion"),
+                LocalizationManager.GetString("ConfirmationExit"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
 
@@ -265,7 +274,7 @@ namespace YourNamespace
                 if (textBox != null && tabModifiedState.TryGetValue(textBox, out bool isModified) && isModified)
                 {
                     MessageBoxResult result = MessageBox.Show(
-                        $"{LocalizationManager.GetString("UnsavedChangesTab")} '{tab.Header}'. {LocalizationManager.GetString("SaveBeforeClose")}",
+                        string.Format(LocalizationManager.GetString("UnsavedChangesPromptClose"), tab.Header),
                         LocalizationManager.GetString("ConfirmationClose"),
                         MessageBoxButton.YesNoCancel,
                         MessageBoxImage.Question);

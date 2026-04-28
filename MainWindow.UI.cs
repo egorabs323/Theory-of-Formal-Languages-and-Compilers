@@ -56,7 +56,9 @@ namespace YourNamespace
             UpdateStatusBar();
             UpdateActiveCursorPosition();
             UpdateResultTabsLocalization();
-            UpdateErrorsGridLocalization();
+            UpdateResultGridsLocalization();
+            UpdateErrorSummaryLocalization();
+            RefreshAnalysisResultsForCurrentLanguage();
         }
 
         private void UpdateMenuItems()
@@ -95,6 +97,10 @@ namespace YourNamespace
                     {
                         topLevelItem.Header = LocalizationManager.GetString("LanguageMenu");
                         UpdateSubMenuItems(topLevelItem, FileType.LanguageMenu);
+                    }
+                    else if (hdr.Contains("Пуск") || hdr.Contains("Start"))
+                    {
+                        topLevelItem.Header = LocalizationManager.GetString("StartMenu");
                     }
                 }
             }
@@ -215,6 +221,8 @@ namespace YourNamespace
                         button.ToolTip = LocalizationManager.GetString("UserGuideMenu");
                     else if (tooltip.Contains("Информация") || tooltip.Contains("About"))
                         button.ToolTip = LocalizationManager.GetString("AboutMenu");
+                    else if (tooltip.Contains("анализ") || tooltip.Contains("analysis"))
+                        button.ToolTip = LocalizationManager.GetString("AnalyzeTooltip");
                 }
             }
         }
@@ -262,15 +270,38 @@ namespace YourNamespace
                 i++;
             }
         }
-        private void UpdateErrorsGridLocalization()
+        private void UpdateResultGridsLocalization()
         {
-            if (ErrorsDataGrid?.Columns.Count < 5) return;
+            if (TokensDataGrid?.Columns.Count >= 4)
+            {
+                TokensDataGrid.Columns[0].Header = LocalizationManager.GetString("TokensGrid_Code");
+                TokensDataGrid.Columns[1].Header = LocalizationManager.GetString("TokensGrid_Type");
+                TokensDataGrid.Columns[2].Header = LocalizationManager.GetString("TokensGrid_Lexeme");
+                TokensDataGrid.Columns[3].Header = LocalizationManager.GetString("TokensGrid_Location");
+            }
 
-            ErrorsDataGrid.Columns[0].Header = LocalizationManager.GetString("ErrorsGrid_Time");
-            ErrorsDataGrid.Columns[1].Header = LocalizationManager.GetString("ErrorsGrid_Level");
-            ErrorsDataGrid.Columns[2].Header = LocalizationManager.GetString("ErrorsGrid_Module");
-            ErrorsDataGrid.Columns[3].Header = LocalizationManager.GetString("ErrorsGrid_Message");
-            ErrorsDataGrid.Columns[4].Header = LocalizationManager.GetString("ErrorsGrid_Code");
+            if (ErrorsDataGrid?.Columns.Count >= 3)
+            {
+                ErrorsDataGrid.Columns[0].Header = LocalizationManager.GetString("ErrorsGrid_Fragment");
+                ErrorsDataGrid.Columns[1].Header = LocalizationManager.GetString("ErrorsGrid_Location");
+                ErrorsDataGrid.Columns[2].Header = LocalizationManager.GetString("ErrorsGrid_Description");
+            }
+        }
+
+        private void UpdateErrorSummaryLocalization()
+        {
+            if (ErrorCountLabelTextBlock != null)
+            {
+                ErrorCountLabelTextBlock.Text = LocalizationManager.GetString("ErrorsSummaryTotal");
+            }
+        }
+
+        private void RefreshAnalysisResultsForCurrentLanguage()
+        {
+            if ((TokensDataGrid?.Items.Count ?? 0) > 0 || (ErrorsDataGrid?.Items.Count ?? 0) > 0)
+            {
+                Analyze_Click(null, null);
+            }
         }
 
         private void InitializeErrorGrid()
