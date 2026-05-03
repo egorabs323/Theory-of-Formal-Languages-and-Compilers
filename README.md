@@ -1,4 +1,4 @@
-# Theory-of-Formal-Languages-and-Compilers
+# *Theory-of-Formal-Languages-and-Compilers*
 ## Список выполненных работ
 
 - [Лабораторная работа 1.](#lab1)
