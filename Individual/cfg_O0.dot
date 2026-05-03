@@ -1,0 +1,5 @@
+digraph "CFG for 'main' function" {
+	label="CFG for 'main' function";
+
+	Node0x58ac3f6c0090 [shape=record,color="#b70d28ff", style=filled, fillcolor="#b70d2870" fontname="Courier",label="{0:\l|  %1 = alloca i32, align 4\l  %2 = alloca double, align 8\l  %3 = alloca double, align 8\l  store i32 0, ptr %1, align 4\l  store double 2.000000e+00, ptr %2, align 8\l  %4 = load double, ptr %2, align 8\l  %5 = fmul double 0x400921FB54442D18, %4\l  %6 = load double, ptr %2, align 8\l  %7 = fmul double %5, %6\l  store double %7, ptr %3, align 8\l  %8 = load double, ptr %3, align 8\l  %9 = fptosi double %8 to i32\l  ret i32 %9\l}"];
+}
