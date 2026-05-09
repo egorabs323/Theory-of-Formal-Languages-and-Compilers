@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\egoro\\source\\repos\\laba2\\laba1.csproj",
+      "projectUniqueName": "C:\\Users\\egoro\\Downloads\\Theory-of-Formal-Languages-and-Compilers\\laba1.csproj",
       "projectName": "laba1",
-      "projectPath": "C:\\Users\\egoro\\source\\repos\\laba2\\laba1.csproj",
+      "projectPath": "C:\\Users\\egoro\\Downloads\\Theory-of-Formal-Languages-and-Compilers\\laba1.csproj",
       "packagesPath": "C:\\Users\\egoro\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\egoro\\source\\repos\\laba2\\obj\\",
+      "outputPath": "C:\\Users\\egoro\\Downloads\\Theory-of-Formal-Languages-and-Compilers\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\egoro\\AppData\\Roaming\\NuGet\\NuGet.Config",

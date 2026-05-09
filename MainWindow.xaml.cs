@@ -47,8 +47,8 @@ namespace YourNamespace
         private void Analyze_Click(object sender, RoutedEventArgs e)
         {
             string code = GetActiveCodeText();
-            var lexer = new Lexer(code);
-            var tokens = lexer.Tokenize();
+            var analysis = FlexBisonAnalyzer.Analyze(code);
+            var tokens = analysis.Tokens;
 
             var lexemes = new List<LexemeEntry>();
             var allErrors = new List<ErrorEntry>();
@@ -93,12 +93,9 @@ namespace YourNamespace
                 }
             }
 
-            var parser = new Parser(tokens);
-            var parseResult = parser.Parse();
-
-            if (parseResult.Errors != null)
+            if (analysis.ParseErrors != null)
             {
-                foreach (var err in parseResult.Errors)
+                foreach (var err in analysis.ParseErrors)
                 {
                     string fragment = string.IsNullOrWhiteSpace(err.Fragment)
                         ? GetErrorFragment(code, err.Line, err.Column)
@@ -110,6 +107,16 @@ namespace YourNamespace
                         err.Line,
                         err.Column));
                 }
+            }
+
+            if (!string.IsNullOrWhiteSpace(analysis.InfrastructureError))
+            {
+                allErrors.Add(new ErrorEntry(
+                    "flex/bison",
+                    FormatPositionLocation(1, 1),
+                    analysis.InfrastructureError,
+                    1,
+                    1));
             }
 
             TokensDataGrid.ItemsSource = lexemes;

@@ -14,7 +14,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-  
+    <Content Include="flex_bison\fb_analyzer.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>flex_bison\fb_analyzer.exe</TargetPath>
+    </Content>
   </ItemGroup>
 
 </Project>

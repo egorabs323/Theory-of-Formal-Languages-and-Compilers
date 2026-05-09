@@ -1,0 +1,1 @@
+final double = 3.14;
