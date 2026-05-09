@@ -143,4 +143,4 @@ final double PI 3.14;
 
 <img width="1534" height="293" alt="Снимок экрана 2026-05-09 191350" src="https://github.com/user-attachments/assets/fe9813cf-5dc7-45f0-975d-06f77d2f238e" />
 
-Рисунок 4 - Некорректный пример для терминале
+Рисунок 4 - Некорректный пример для терминала
