@@ -121,11 +121,11 @@ final double R = 10.0;
 final double G = -6.67e-11;
 ```
 
-![скрин](img/.png)
+<img width="857" height="548" alt="Снимок экрана 2026-05-09 191528" src="https://github.com/user-attachments/assets/7cdd8d89-e27a-42cf-bedc-5f2f70d20a6e" />
 
 Рисунок 1 - Корректный пример для программы
 
-![скрин](img/.png)
+<img width="1520" height="412" alt="Снимок экрана 2026-05-09 190509" src="https://github.com/user-attachments/assets/8e17261f-bdef-446c-af80-1b981b276874" />
 
 Рисунок 2 - Корректный пример для терминала
 
@@ -137,10 +137,10 @@ final double PI = 3.;
 final double PI 3.14;
 ```
 
-![скрин](img/.png)
+<img width="1404" height="300" alt="Снимок экрана 2026-05-09 191549" src="https://github.com/user-attachments/assets/9998a14b-b014-4194-bab0-9065fe966f71" />
 
 Рисунок 3 - Некорректный пример для программы
 
-![скрин](img/.png)
+<img width="1534" height="293" alt="Снимок экрана 2026-05-09 191350" src="https://github.com/user-attachments/assets/fe9813cf-5dc7-45f0-975d-06f77d2f238e" />
 
 Рисунок 4 - Некорректный пример для терминале
